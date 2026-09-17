@@ -60,6 +60,35 @@ the page dims, which layout to search by default, and where the data folder
 lives. Re-importing a layout that is already stored asks whether to replace it,
 update just those pages, or keep both, showing the import dates.
 
+## Getting the Windows app
+
+Every push builds it on a Windows runner, tests it, self-tests the packaged
+executable and uploads it: **Actions → Windows build → the newest green run →
+Artifacts → `ShelfFinder-windows`**. Unzip it anywhere and double-click
+`ShelfFinder.exe`.
+
+Windows will warn about an unknown publisher because the build is not
+code-signed - choose *More info*, then *Run anyway*.
+
+If the window does not appear, run `ShelfFinder-console.exe` from a command
+prompt to see the error, or `ShelfFinder-console.exe --selftest` to check the
+build itself: it draws a small planogram, parses it, stores it, searches it and
+opens the window off-screen, printing a pass or fail for each step.
+
+### Building it yourself
+
+```bash
+pip install -r requirements.txt pyinstaller
+pip uninstall -y opencv-python                      # RapidOCR pulls in the heavy build
+pip install --force-reinstall --no-deps opencv-python-headless
+pyinstaller packaging/shelffinder.spec --noconfirm --clean
+dist/ShelfFinder/ShelfFinder-console --selftest
+```
+
+One folder rather than one file, so start-up stays quick. It comes to roughly
+300-500 MB unpacked, most of it Qt, OpenCV and the OCR models, and it runs with
+no network access at all.
+
 ## Parse some sheets
 
 ```bash
