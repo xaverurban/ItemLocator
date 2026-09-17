@@ -200,3 +200,43 @@ def test_a_sideways_photo_still_parses(samples, engine):
     assert "5481" in codes, sorted(codes)
     assert len(page.bays) == 3
     assert flat.image.shape[0] > flat.image.shape[1]        # portrait, the right way up
+
+
+def test_rotation_survives_text_that_reads_in_any_direction(samples, engine):
+    """The OCR models read a line of text lying on its side, so which way up a
+    page goes cannot be decided from what the text says.
+
+    This pins the geometric signal: on an upright page the text boxes are wide.
+    """
+    from shelffinder.core.imaging import rotate_image, text_direction_score
+
+    page = cv2.imread(os.path.join(samples, "page_1_clean.png"))
+    small = cv2.resize(page, None, fx=0.45, fy=0.45)
+    upright = text_direction_score(engine.read(small))
+    sideways = text_direction_score(engine.read(rotate_image(small, 90)))
+    assert upright > sideways * 3, (upright, sideways)
+
+
+@pytest.mark.parametrize("turned", [0, 90, 180, 270])
+def test_a_photographed_sheet_ends_up_upright(samples, engine, turned):
+    from shelffinder.core.imaging import rotate_image, straighten
+
+    photo = cv2.imread(os.path.join(samples, "page_2_photo.jpg"))
+    flat = straighten(rotate_image(photo, turned), ocr_engine=engine)
+    assert flat.image.shape[0] > flat.image.shape[1], "the page should end up portrait"
+
+    lines = engine.read(cv2.resize(flat.image, None, fx=0.5, fy=0.5))
+    wide = sum(1 for line in lines if line.bbox.w > line.bbox.h)
+    assert wide > len(lines) * 0.8, "the text should be reading left to right"
+
+
+def test_notch_order_decides_which_way_up(samples, engine):
+    """Notch numbers count down the page; upside down, they count up."""
+    from shelffinder.core.imaging import rotate_image, upside_down_score
+
+    page = cv2.imread(os.path.join(samples, "page_1_clean.png"))
+    small = cv2.resize(page, None, fx=0.45, fy=0.45)
+    height = float(small.shape[0])
+    assert upside_down_score(engine.read(small), height) < 0
+    flipped = rotate_image(small, 180)
+    assert upside_down_score(engine.read(flipped), float(flipped.shape[0])) > 0

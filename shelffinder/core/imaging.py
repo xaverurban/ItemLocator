@@ -354,61 +354,141 @@ def rotation_matrix(degrees: int, width: int, height: int) -> np.ndarray:
     return np.array([[0, 1, 0], [-1, 0, width - 1], [0, 0, 1]], dtype=np.float64)
 
 
-def orientation_score(lines) -> float:
-    """How much does this read like an upright planogram sheet?
+def text_direction_score(lines) -> float:
+    """How strongly the text reads left-to-right rather than top-to-bottom.
 
-    Text that is upside down or on its side still comes back from OCR, but as
-    fragments: the words a planogram always carries ("Notch", "Depth", "Cases")
-    only appear when the page is the right way up, so they carry most of the
-    weight.
+    The OCR models happily read a line of text that is lying on its side - they
+    rotate each detected box before recognising it - so what the text *says*
+    cannot tell us which way up the page is. The shape of the boxes can: on an
+    upright page every line is wider than it is tall.
+    """
+
+    if not lines:
+        return 0.0
+    wide = weight = 0.0
+    for line in lines:
+        confidence = float(line.confidence)
+        weight += confidence
+        if line.bbox.w > line.bbox.h:
+            wide += confidence
+    if weight <= 0:
+        return 0.0
+    fraction = wide / weight
+    # More readable lines is also better evidence, with sharply diminishing returns.
+    return fraction * float(np.log1p(len(lines)))
+
+
+def upside_down_score(lines, page_height: float) -> float:
+    """Positive when the page looks like it is the wrong way up.
+
+    Nothing here relies on the words being unreadable upside down, because they
+    are not. It relies on where things sit on a planogram: notch numbers count
+    down the page, the title is at the top, the flow arrow and page number are
+    at the bottom.
     """
 
     from . import textparse
 
     score = 0.0
+
+    # Notch numbers run from the highest shelf at the top to the lowest at the
+    # bottom, so notch value should fall as y rises.
+    notches: list[tuple[float, int]] = []
     for line in lines:
-        text = line.text.lower()
+        info = textparse.parse_notch(line.text)
+        if info is not None and info.notch is not None:
+            notches.append((line.bbox.cy, info.notch))
+    if len(notches) >= 3:
+        agree = disagree = 0
+        for i in range(len(notches)):
+            for j in range(i + 1, len(notches)):
+                (y_a, notch_a), (y_b, notch_b) = notches[i], notches[j]
+                if abs(y_a - y_b) < page_height * 0.02 or notch_a == notch_b:
+                    continue
+                lower_on_page = y_a > y_b
+                smaller_notch = notch_a < notch_b
+                if lower_on_page == smaller_notch:
+                    agree += 1
+                else:
+                    disagree += 1
+        if agree + disagree >= 3:
+            score += 6.0 * (disagree - agree) / (agree + disagree)
+
+    for line in lines:
+        text = " ".join(line.text.lower().split())
+        near_top = line.bbox.cy < page_height * 0.18
+        near_bottom = line.bbox.cy > page_height * 0.82
+        if textparse.parse_page_number(line.text) and len(text) <= 12:
+            score += 1.5 if near_top else (-1.5 if near_bottom else 0.0)
+        if "customer" in text and "flow" in text:
+            score += 2.0 if near_top else (-2.0 if near_bottom else 0.0)
+        if "layoutmanagement" in text.replace(" ", "") or "lidl.ie" in text:
+            score += 1.5 if near_bottom else (-1.5 if near_top else 0.0)
+        if "visible notch" in text or "plinth" in text:
+            score += 1.5 if near_top else (-1.5 if near_bottom else 0.0)
+
+    return score
+
+
+def reading_quality(lines) -> float:
+    """How much of this reads like a planogram rather than like noise."""
+
+    from . import textparse
+
+    score = 0.0
+    for line in lines:
         confidence = float(line.confidence)
         if textparse.parse_notch(line.text) is not None:
-            score += 14.0 * confidence          # the most telling line on the sheet
+            score += 3.0 * confidence
         elif textparse.parse_cases(line.text) is not None:
-            score += 5.0 * confidence
-        elif any(word in text for word in _ORIENTATION_KEYWORDS):
-            score += 4.0 * confidence
-        if textparse.code_candidate(line.text) is not None:
-            score += 2.0 * confidence
-        elif sum(char.isdigit() for char in text) >= 4:
-            score += 0.8 * confidence
-        if line.bbox.w > line.bbox.h:           # upright text lines are wide
-            score += 0.3 * confidence
-        else:
-            score -= 0.3 * confidence
+            score += 1.5 * confidence
+        elif textparse.code_candidate(line.text) is not None:
+            score += 1.0 * confidence
     return score
 
 
 def detect_rotation(image: np.ndarray, ocr_engine, probe_long_side: int = 1400,
-                    return_scores: bool = False):
+                    return_detail: bool = False):
     """Return the clockwise rotation (0/90/180/270) that makes the page upright.
 
-    All four are tried. The page's own shape is not a reliable shortcut: a sheet
-    photographed on its side can still warp to a portrait image, and skipping 90
-    and 270 in that case leaves the whole page sideways.
+    Two questions, answered separately: which way the lines of text run, and
+    whether the page is the right way up along that axis.
     """
 
     height, width = image.shape[:2]
     scale = min(1.0, probe_long_side / float(max(width, height)))
     probe = cv2.resize(image, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
 
-    scores: dict[int, float] = {}
-    for angle in (0, 90, 180, 270):
-        lines = ocr_engine.read(rotate_image(probe, angle))
-        scores[angle] = orientation_score(lines)
-        log.debug("orientation %3d deg -> score %.1f (%d lines)", angle, scores[angle],
-                  len(lines))
-    best_angle = max(scores, key=lambda angle: scores[angle])
-    log.info("rotation %d deg (scores %s)", best_angle,
-             {angle: round(value, 1) for angle, value in scores.items()})
-    return (best_angle, scores) if return_scores else best_angle
+    readings = {angle: ocr_engine.read(rotate_image(probe, angle)) for angle in (0, 90)}
+    scores = {angle: text_direction_score(lines) for angle, lines in readings.items()}
+    axis = max(scores, key=lambda angle: scores[angle])
+
+    lines = readings[axis]
+    page_height = float(rotate_image(probe, axis).shape[0])
+    flip = upside_down_score(lines, page_height)
+
+    quality = None
+    if abs(flip) < 1.0:
+        # Nothing on the page said which way up it is. Read it the other way up
+        # and keep whichever reads better: recognition is a little sharper when
+        # the text is not upside down, even though it is still legible.
+        upside_down = ocr_engine.read(rotate_image(probe, (axis + 180) % 360))
+        quality = (reading_quality(lines), reading_quality(upside_down))
+        if quality[1] > quality[0] * 1.05:
+            flip = 1.0
+
+    rotation = (axis + (180 if flip > 0 else 0)) % 360
+
+    detail = {
+        "axis": axis,
+        "direction_scores": scores,
+        "flip_score": flip,
+        "quality": quality,
+        "lines": {angle: len(found) for angle, found in readings.items()},
+    }
+    log.info("rotation %d deg (axis %d, direction %s, flip %.1f)", rotation, axis,
+             {angle: round(value, 2) for angle, value in scores.items()}, flip)
+    return (rotation, detail) if return_detail else rotation
 
 
 def blur_score(image: np.ndarray) -> float:
@@ -430,13 +510,16 @@ def straighten(image: np.ndarray, ocr_engine=None, blur_threshold: float = 60.0)
 
     rotation = 0
     if ocr_engine is not None:
-        rotation, scores = detect_rotation(warped, ocr_engine, return_scores=True)
-        ranked = sorted(scores.values(), reverse=True)
-        if ranked[0] <= 0:
-            warnings.append("The page could not be read in any orientation - it may be "
-                            "blurry, cropped or upside down. Check it on the review screen.")
-        elif len(ranked) > 1 and ranked[1] > ranked[0] * 0.8:
-            warnings.append("Which way up this page goes was a close call - "
+        rotation, detail = detect_rotation(warped, ocr_engine, return_detail=True)
+        direction = sorted(detail["direction_scores"].values(), reverse=True)
+        if direction[0] <= 0.5:
+            warnings.append("Hardly any text could be read on this page - it may be "
+                            "blurry or cropped. Check it before relying on it.")
+        elif len(direction) > 1 and direction[1] > direction[0] * 0.85:
+            warnings.append("Which way round this page goes was a close call - "
+                            "check the page looks right.")
+        elif abs(detail["flip_score"]) < 1.0:
+            warnings.append("Whether this page is upside down was a close call - "
                             "check the page looks right.")
     elif warped.shape[1] > warped.shape[0]:
         rotation = 90
