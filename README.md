@@ -6,10 +6,10 @@ Type part of a product code and get the page, bay, shelf and position it belongs
 on, with the product highlighted on the sheet. Works fully offline: the sheets
 are internal store documents and never leave the machine.
 
-**Status: phase 2 (search).** A command line tool that turns photos, scans and
-PDFs of layout sheets into straightened pages, debug overlays and JSON, stores
-them in SQLite, and answers code searches with the full shelf location. The
-desktop UI comes in phase 3.
+**Status: phase 3 (desktop app).** A dark, keyboard-driven desktop app that
+imports sheets, searches codes as you type and shows the product highlighted on
+the page - plus the command line tool underneath it. The review and edit screen
+comes in phase 4.
 
 ---
 
@@ -22,6 +22,43 @@ python -m venv .venv
 
 Python 3.11 or newer. First run downloads nothing - the OCR models ship inside
 `rapidocr-onnxruntime`.
+
+## Run the app
+
+```bash
+.venv/bin/python -m shelffinder            # Windows: .venv\Scripts\python -m shelffinder
+```
+
+Drop photos, scans or PDFs onto the window (or press Ctrl+O). Each page is
+straightened, read and stored; the progress bar reports page by page. Then type
+three or more digits of a code.
+
+* **One match** jumps straight to it: the page opens, the view zooms to the
+  product, the product is outlined in the highlight colour with a soft glow and
+  the rest of the page dims. Its shelf row and bay are faintly outlined too.
+* **Several matches** drop a list under the search box, matched digits in bold,
+  with the name, layout, page, bay, shelf and position. Arrow keys move, Enter
+  opens, and each row previews as you move.
+* **No match** offers the near misses - a wrong digit or two swapped.
+* **Clicking any product on the sheet** shows its card instead (reverse lookup).
+* **Original photo** switches between the straightened page and the photo it
+  came from, with the highlight mapped onto both through the page transform.
+* Scroll to zoom, drag to pan, double-click to fit, pinch on a touchscreen.
+
+| Shortcut | What it does |
+| --- | --- |
+| `Ctrl+O` | import sheets |
+| `Ctrl+F` or `/` | focus the search box |
+| `Enter` | open the top result |
+| `Esc` | clear the search and the highlight |
+| `←` `→` | previous / next page |
+| `Ctrl+B` | show or hide the layouts panel |
+| `Ctrl+,` | settings |
+
+Settings cover the highlight colour, the UI accent colour, how much the rest of
+the page dims, which layout to search by default, and where the data folder
+lives. Re-importing a layout that is already stored asks whether to replace it,
+update just those pages, or keep both, showing the import dates.
 
 ## Parse some sheets
 
@@ -100,12 +137,15 @@ same labels read correctly on the scan.
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest             # fast unit tests
-.venv/bin/python -m pytest -m slow     # end-to-end, loads the OCR models (~30s)
+.venv/bin/python -m pytest             # 95 fast unit tests
+.venv/bin/python -m pytest -m ui       # 19 UI tests, headless
+.venv/bin/python -m pytest -m slow     # 11 end-to-end, loads the OCR models (~20s)
 ```
 
-There are 95 fast tests covering the text rules, the parser internals, the data
-model, storage, search ranking and the result card, and 11 slow ones.
+The UI tests run against a real main window on Qt's offscreen platform, so they
+cover the things that are easy to break by hand: the card's numbers, the
+single-match jump, the near-miss list, the dim overlay, reverse lookup, page
+navigation and the panels stacking on a narrow window.
 
 The slow tests are the acceptance tests from the brief: "038" is the leftmost
 product on the notch 12 shelf of page 2, "5481" is the rightmost on the top
@@ -184,6 +224,16 @@ shelffinder/
     store.py       SQLite persistence and re-import handling
     search.py      the code index and matching rules
     locate.py      a hit turned into the result card, neighbours included
+    library.py     the data folder: import, store, search, edit
+  ui/              PySide6, and nothing in core imports from here
+    app.py         entry point
+    main_window.py sidebar, search, viewer and result card wired together
+    viewer.py      zoom, pan, highlight with dim, mapped onto either image
+    search_bar.py  debounced search box and the result list
+    result_card.py the big numbers
+    sidebar.py     layouts, pages and the thumbnail strip
+    import_task.py the import worker thread
+    settings.py    settings_dialog.py  theme.py
   cli.py           the command line front end
 tools/
   make_sample.py   synthetic sheets that mimic the real ones
@@ -198,7 +248,7 @@ reused behind a desktop UI, a phone app or a batch job.
 
 1. ~~Parser prototype (CLI, straightened pages, overlays, JSON)~~ - done
 2. ~~Search logic with unit tests~~ - done
-3. Desktop UI: import, viewer, search, highlight
+3. ~~Desktop UI: import, viewer, search, highlight~~ - done
 4. Review and edit screen
 5. Settings, layout pack export/import, Windows `.exe`
 6. Phone app recommendation

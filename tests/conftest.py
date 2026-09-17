@@ -1,5 +1,10 @@
 """Shared fixtures: a small hand-built layout that mirrors the real sheets."""
 
+import os
+
+# The UI tests need a platform plugin before Qt is imported anywhere.
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
 import pytest
 
 from shelffinder.core.models import BBox, Bay, Layout, Page, Product, Shelf
@@ -36,9 +41,10 @@ PAGE_1_PRODUCTS = [
 ]
 
 
-def _make_page(number: int, total: int, entries, shelves, bay_count: int) -> Page:
-    page = Page(number=number, total_pages=total, layout_name="IE Household",
-                layout_size="4.5m", size=(2100, 3000))
+def _make_page(number: int, total: int, entries, shelves, bay_count: int,
+               name: str = "IE Household", size: str = "4.5m") -> Page:
+    page = Page(number=number, total_pages=total, layout_name=name,
+                layout_size=size, size=(2100, 3000))
     bay_width = 2100 / bay_count
     for index in range(1, bay_count + 1):
         bay = Bay(index=index, x_range=((index - 1) * bay_width, index * bay_width),
@@ -83,5 +89,6 @@ def frozen_layout() -> Layout:
     layout = Layout(name="IE Frozen", size="2.5m")
     layout.pages = [_make_page(1, 1, [("5481", "Frozen Peas", 6, 1, 1, 300),
                                       ("300380", "Ice Cream Tubs", 4, 1, 1, 700)],
-                               PAGE_2_SHELVES[:1], bay_count=1)]
+                               PAGE_2_SHELVES[:1], bay_count=1,
+                               name="IE Frozen", size="2.5m")]
     return layout

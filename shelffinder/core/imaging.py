@@ -425,6 +425,29 @@ def straighten(image: np.ndarray, ocr_engine=None, blur_threshold: float = 60.0)
                         page_detected=detected, blur_score=sharpness, warnings=warnings)
 
 
+def map_points(transform, points, inverse: bool = False) -> list[tuple[float, float]]:
+    """Move points between the original photo and the straightened page.
+
+    ``transform`` is the 3x3 matrix on :class:`Straightened` (original ->
+    straightened); pass ``inverse=True`` to go the other way, which is what the
+    viewer needs to draw a highlight on top of the original photo.
+    """
+
+    matrix = np.asarray(transform, dtype=np.float64).reshape(3, 3)
+    if inverse:
+        matrix = np.linalg.inv(matrix)
+    array = np.asarray(points, dtype=np.float32).reshape(-1, 1, 2)
+    mapped = cv2.perspectiveTransform(array, matrix.astype(np.float64)).reshape(-1, 2)
+    return [(float(x), float(y)) for x, y in mapped]
+
+
+def map_box(transform, box, inverse: bool = False) -> list[tuple[float, float]]:
+    """Map a box's four corners, which perspective turns into a quadrilateral."""
+    x1, y1, x2, y2 = box
+    corners = [(x1, y1), (x2, y1), (x2, y2), (x1, y2)]
+    return map_points(transform, corners, inverse=inverse)
+
+
 def _pre_rotation_size(rotated: np.ndarray, degrees: int) -> tuple[int, int]:
     """Width/height the image had *before* the rotation was applied."""
     height, width = rotated.shape[:2]
