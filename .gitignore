@@ -2,6 +2,9 @@ __pycache__/
 *.py[cod]
 .venv/
 out/
+out*/
+data/
+dist/
 build/
 dist/
 *.egg-info/

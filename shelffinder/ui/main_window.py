@@ -7,9 +7,9 @@ from typing import Optional
 
 from PySide6.QtCore import QPoint, Qt, QTimer, Signal
 from PySide6.QtGui import QAction, QKeySequence, QShortcut
-from PySide6.QtWidgets import (QApplication, QFileDialog, QFrame, QHBoxLayout, QLabel,
-                               QMainWindow, QMessageBox, QProgressBar, QPushButton,
-                               QSplitter, QStackedWidget, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QFileDialog, QFrame, QHBoxLayout, QInputDialog,
+                               QLabel, QMainWindow, QMenu, QMessageBox, QProgressBar,
+                               QPushButton, QSplitter, QStackedWidget, QVBoxLayout, QWidget)
 
 from ..core.imaging import SUPPORTED_EXTENSIONS
 from ..core.library import ImportReport, Library
@@ -77,6 +77,15 @@ class MainWindow(QMainWindow):
         self.import_button.setObjectName("Primary")
         self.import_button.clicked.connect(self.choose_files)
         top.addWidget(self.import_button)
+
+        self.packs_button = QPushButton("Packs")
+        self.packs_button.setToolTip("Move a processed layout to another machine "
+                                     "or to the phone app")
+        packs_menu = QMenu(self)
+        packs_menu.addAction("Export a layout pack...", self.export_pack)
+        packs_menu.addAction("Import a layout pack...", self.import_pack)
+        self.packs_button.setMenu(packs_menu)
+        top.addWidget(self.packs_button)
 
         self.settings_button = QPushButton("Settings")
         self.settings_button.clicked.connect(self.open_settings)
@@ -472,6 +481,69 @@ class MainWindow(QMainWindow):
             return ImportMode.KEEP_BOTH
         return None
 
+    # ------------------------------------------------------- layout packs
+    def export_pack(self) -> None:
+        """Write a layout to a pack the phone app - or another PC - can read."""
+
+        layouts = self.library.layouts
+        if not layouts:
+            QMessageBox.information(self, "Nothing to export",
+                                    "Import some sheets first.")
+            return
+
+        choices = ["Everything"] + [layout.title or "Untitled layout" for layout in layouts]
+        current = 0
+        if self._current_layout is not None:
+            for index, layout in enumerate(layouts, start=1):
+                if layout.id == self._current_layout.id:
+                    current = index
+                    break
+        choice, accepted = QInputDialog.getItem(self, "Export a layout pack",
+                                                "Which layout?", choices, current, False)
+        if not accepted:
+            return
+        layout_ids = None
+        if choice != "Everything":
+            layout_ids = [layout.id for layout in layouts
+                          if (layout.title or "Untitled layout") == choice]
+
+        suggested = (choice if choice != "Everything" else "shelffinder").replace(" ", "-")
+        path, _ = QFileDialog.getSaveFileName(self, "Save the layout pack",
+                                              f"{suggested}.shelfpack.zip",
+                                              "Layout pack (*.zip)")
+        if not path:
+            return
+
+        self.statusBar().showMessage("Writing the pack...")
+        QApplication.setOverrideCursor(Qt.CursorShape.BusyCursor)
+        try:
+            summary = self.library.export_pack(path, layout_ids=layout_ids)
+        except (OSError, ValueError) as error:
+            QMessageBox.warning(self, "Could not write the pack", str(error))
+            self.statusBar().showMessage("Export failed", 5000)
+            return
+        finally:
+            QApplication.restoreOverrideCursor()
+
+        QMessageBox.information(
+            self, "Pack written",
+            f"{os.path.basename(path)}\n\n{summary.describe()}\n\n"
+            "Copy it to the phone and open it with ShelfFinder for Android.")
+        self.statusBar().showMessage(f"Exported {summary.describe()}", 8000)
+
+    def import_pack(self) -> None:
+        path, _ = QFileDialog.getOpenFileName(self, "Open a layout pack", "",
+                                              "Layout pack (*.zip);;All files (*)")
+        if not path:
+            return
+        try:
+            self.library.import_pack(path)
+        except (OSError, ValueError, KeyError) as error:
+            QMessageBox.warning(self, "Could not read that pack", str(error))
+            return
+        self.refresh_library(select_first=True)
+        self.statusBar().showMessage(f"Imported {os.path.basename(path)}", 8000)
+
     # ------------------------------------------------------- drag and drop
     def dragEnterEvent(self, event) -> None:
         if event.mimeData().hasUrls():
@@ -479,6 +551,19 @@ class MainWindow(QMainWindow):
 
     def dropEvent(self, event) -> None:
         paths = [url.toLocalFile() for url in event.mimeData().urls() if url.isLocalFile()]
+        packs = [path for path in paths if path.lower().endswith(".zip")]
+        if packs:
+            for pack in packs:
+                try:
+                    self.library.import_pack(pack)
+                except (OSError, ValueError, KeyError) as error:
+                    QMessageBox.warning(self, "Could not read that pack", str(error))
+                    return
+            self.refresh_library(select_first=True)
+            self.statusBar().showMessage(f"Imported {len(packs)} pack(s)", 8000)
+            event.acceptProposedAction()
+            return
+
         supported = [path for path in paths
                      if os.path.isdir(path)
                      or os.path.splitext(path)[1].lower() in SUPPORTED_EXTENSIONS]

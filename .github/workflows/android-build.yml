@@ -1,0 +1,56 @@
+name: Android build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**"]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/android-build.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.27.1"
+          channel: stable
+          cache: true
+
+      - name: Fetch packages
+        run: flutter pub get
+
+      - name: Analyse
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build the APK
+        run: flutter build apk --release
+
+      - name: Name the APK for humans
+        run: |
+          mkdir -p ../dist
+          cp build/app/outputs/flutter-apk/app-release.apk ../dist/ShelfFinder.apk
+          ls -lh ../dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ShelfFinder-android
+          path: dist/ShelfFinder.apk
+          retention-days: 30

@@ -1,0 +1,24 @@
+name: shelffinder_mobile
+description: "Find where a product goes on a printed shelf layout."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  archive: ^3.6.1          # reads layout packs, pure Dart
+  file_picker: ^8.1.6      # choose a pack to import
+  path: ^1.9.0
+  path_provider: ^2.1.5
+  shared_preferences: ^2.3.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

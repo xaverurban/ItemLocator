@@ -18,6 +18,7 @@ import numpy as np
 
 from .imaging import Straightened, iter_input_files, load_source_pages, straighten
 from .locate import Location, locate
+from .pack import PackSummary, export_pack, import_pack
 from .models import Layout, Page, Product, group_pages_into_layouts
 from .ocr import OcrEngine, RapidOcrEngine
 from .parser import ParseOptions, parse_image
@@ -200,6 +201,25 @@ class Library:
         page.straightened_image = os.path.join(IMAGES_DIR, straight_name)
         page.original_image = os.path.join(IMAGES_DIR, original_name)
 
+    def adopt_images(self, page: Page, straightened: str, original: str = "") -> None:
+        """Copy images produced elsewhere into the data folder and point the page at them.
+
+        Used by the command line, which writes its debug output to its own
+        folder: the library has to own a copy, or the page loses its picture the
+        moment that folder is cleaned up.
+        """
+
+        for source, suffix, attribute in ((straightened, "straight", "straightened_image"),
+                                          (original, "original", "original_image")):
+            if not source or not os.path.exists(source):
+                continue
+            extension = os.path.splitext(source)[1].lower() or ".png"
+            name = f"{page.id}_{suffix}{extension}"
+            target = os.path.join(self.images_dir, name)
+            if os.path.abspath(source) != os.path.abspath(target):
+                shutil.copy2(source, target)
+            setattr(page, attribute, os.path.join(IMAGES_DIR, name))
+
     def conflicts(self, report: ImportReport) -> list[LayoutConflict]:
         found: list[LayoutConflict] = []
         for layout in report.layouts:
@@ -241,6 +261,33 @@ class Library:
                             log.warning("could not delete %s", path)
         self.store.delete_layout(layout_id)
         self.reload()
+
+    # -- layout packs -----------------------------------------------------
+    def export_pack(self, destination: str, layout_ids: Optional[Sequence[str]] = None,
+                    include_originals: bool = False,
+                    progress: Optional[Callable[[int, int, str], None]] = None) -> PackSummary:
+        """Write layouts to a pack zip another machine - or the phone - can read."""
+        chosen = [layout for layout in self._layouts
+                  if not layout_ids or layout.id in set(layout_ids)]
+        if not chosen:
+            raise ValueError("there is nothing to export")
+        return export_pack(chosen, destination, resolve=self.resolve,
+                           include_originals=include_originals, progress=progress)
+
+    def import_pack(self, path: str, mode: ImportMode = ImportMode.KEEP_BOTH) -> list[str]:
+        """Read a pack and store its layouts, copying the images into the data folder."""
+        layouts = import_pack(path, self.images_dir)
+        stored: list[str] = []
+        for layout in layouts:
+            for page in layout.pages:
+                for attribute in ("straightened_image", "original_image"):
+                    value = getattr(page, attribute)
+                    if value:
+                        setattr(page, attribute,
+                                os.path.join(IMAGES_DIR, os.path.basename(value)))
+            stored.append(self.store.add_layout(layout, mode))
+        self.reload()
+        return stored
 
     # -- searching --------------------------------------------------------
     def search(self, query: str, layout_ids: Optional[Sequence[str]] = None,

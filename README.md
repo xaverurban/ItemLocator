@@ -60,6 +60,41 @@ the page dims, which layout to search by default, and where the data folder
 lives. Re-importing a layout that is already stored asks whether to replace it,
 update just those pages, or keep both, showing the import dates.
 
+## The Android app
+
+`mobile/` is a Flutter app that reads layout packs exported by the desktop. It
+does no OCR: the desktop has already done that, so the phone only has to search
+and show. It works with no signal, and nothing leaves the device.
+
+Get the APK the same way as the Windows build: **Actions → Android build → the
+newest green run → Artifacts → `ShelfFinder-android`**. Copy `ShelfFinder.apk`
+to the phone and open it; Android will ask you to allow installing from that
+source.
+
+Then, on the desktop, **Packs → Export a layout pack**, copy the `.zip` to the
+phone (cable, Drive, email - anything), and in the app tap **Layouts → Import**.
+
+* Search is the same as the desktop: three digits or more, ends-with before
+  contains, near misses when nothing matches.
+* A result opens the page zoomed onto that product, dimmed around it, with the
+  bay, shelf, notch, position, cases and both neighbours underneath.
+* Tapping any product on the sheet shows its card instead.
+* Pinch to zoom, drag to pan.
+
+Working on it:
+
+```bash
+cd mobile
+flutter pub get
+flutter analyze
+flutter test          # 33 tests, including one that reads a real exported pack
+flutter build apk --release
+```
+
+The pack format is written down in [docs/layout-pack.md](docs/layout-pack.md) -
+a zip holding one JSON document and the page images, readable with nothing but a
+zip library and a JSON parser.
+
 ## Getting the Windows app
 
 Every push builds it on a Windows runner, tests it, self-tests the packaged
@@ -278,6 +313,6 @@ reused behind a desktop UI, a phone app or a batch job.
 1. ~~Parser prototype (CLI, straightened pages, overlays, JSON)~~ - done
 2. ~~Search logic with unit tests~~ - done
 3. ~~Desktop UI: import, viewer, search, highlight~~ - done
-4. Review and edit screen
-5. Settings, layout pack export/import, Windows `.exe`
-6. Phone app recommendation
+4. Review and edit screen - next
+5. ~~Layout pack export/import, Windows `.exe`~~ - done (settings already in)
+6. ~~Android app~~ - done; iOS is the same codebase when wanted

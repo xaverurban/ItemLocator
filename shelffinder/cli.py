@@ -92,16 +92,26 @@ def cmd_parse(args: argparse.Namespace) -> int:
                   f"Keep the best one and re-import, or they will both be searchable.")
 
     if args.db:
+        from .core.library import Library
+
         mode = ImportMode(args.on_existing)
-        with LayoutStore(args.db) as store:
+        library = Library(os.path.dirname(os.path.abspath(args.db)) or ".")
+        try:
             for layout in layouts:
-                for existing in store.find_matching(layout.name, layout.size):
+                for existing in library.store.find_matching(layout.name, layout.size):
                     print(f"  note: '{existing.title}' is already stored "
                           f"({existing.page_count} page(s), imported {existing.imported_at}) "
                           f"- importing with --on-existing {mode.value}")
-                store.add_layout(layout, mode)
-            print(f"  stored in {args.db}: {store.count_products()} products in "
-                  f"{len(store.list_layouts())} layout(s)")
+                for page in layout.pages:
+                    # The library keeps its own copy of every page image.
+                    library.adopt_images(page, page.straightened_image, page.original_image)
+                library.store.add_layout(layout, mode)
+            library.reload()
+            stats = library.stats()
+            print(f"  stored in {library.data_dir}: {stats['products']} products in "
+                  f"{stats['layouts']} layout(s)")
+        finally:
+            library.close()
     return 0
 
 
@@ -158,6 +168,46 @@ def cmd_search(args: argparse.Namespace) -> int:
     return 0 if result.hits else 1
 
 
+def cmd_export_pack(args: argparse.Namespace) -> int:
+    from .core.library import Library
+
+    library = Library(os.path.dirname(os.path.abspath(args.db)) or ".")
+    try:
+        layout_ids = None
+        if args.layout:
+            wanted = args.layout.lower().replace(" ", "")
+            layout_ids = [layout.id for layout in library.layouts
+                          if wanted in layout.title.lower().replace(" ", "")]
+            if not layout_ids:
+                print(f"No layout matching '{args.layout}'.", file=sys.stderr)
+                return 2
+        summary = library.export_pack(args.output, layout_ids=layout_ids,
+                                      include_originals=args.originals,
+                                      progress=lambda done, total, what: print(
+                                          f"  [{done + 1}/{total}] {what}"))
+    except ValueError as error:
+        print(str(error), file=sys.stderr)
+        return 2
+    finally:
+        library.close()
+    print(f"{args.output}: {summary.describe()}")
+    return 0
+
+
+def cmd_import_pack(args: argparse.Namespace) -> int:
+    from .core.library import Library
+
+    library = Library(os.path.dirname(os.path.abspath(args.db)) or ".")
+    try:
+        library.import_pack(args.pack, ImportMode(args.on_existing))
+        stats = library.stats()
+    finally:
+        library.close()
+    print(f"imported {args.pack}: now {stats['layouts']} layout(s), {stats['pages']} page(s), "
+          f"{stats['products']} products")
+    return 0
+
+
 def cmd_layouts(args: argparse.Namespace) -> int:
     with LayoutStore(args.db) as store:
         listed = store.list_layouts()
@@ -196,6 +246,24 @@ def build_parser() -> argparse.ArgumentParser:
     search_cmd.add_argument("--limit", type=int, default=20)
     search_cmd.add_argument("-v", "--verbose", action="store_true")
     search_cmd.set_defaults(func=cmd_search)
+
+    export_cmd = sub.add_parser("export-pack",
+                                help="write layouts to a pack the phone app can read")
+    export_cmd.add_argument("output", help="the .zip to write")
+    export_cmd.add_argument("--db", default=DEFAULT_DB)
+    export_cmd.add_argument("--layout", default=None, help="export one layout only")
+    export_cmd.add_argument("--originals", action="store_true",
+                            help="include the original photos as well (much larger)")
+    export_cmd.add_argument("-v", "--verbose", action="store_true")
+    export_cmd.set_defaults(func=cmd_export_pack)
+
+    import_cmd = sub.add_parser("import-pack", help="read a pack written elsewhere")
+    import_cmd.add_argument("pack", help="the .zip to read")
+    import_cmd.add_argument("--db", default=DEFAULT_DB)
+    import_cmd.add_argument("--on-existing", choices=[mode.value for mode in ImportMode],
+                            default=ImportMode.KEEP_BOTH.value)
+    import_cmd.add_argument("-v", "--verbose", action="store_true")
+    import_cmd.set_defaults(func=cmd_import_pack)
 
     layouts_cmd = sub.add_parser("layouts", help="list the stored layouts")
     layouts_cmd.add_argument("--db", default=DEFAULT_DB)
