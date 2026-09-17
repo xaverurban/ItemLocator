@@ -36,8 +36,8 @@ void main() {
   /// Pumps a few frames rather than pumpAndSettle: the layouts tab holds
   /// `Image.file` thumbnails, and file images never finish loading under the
   /// test binding, so settling would wait forever.
-  Future<void> settle(WidgetTester tester) async {
-    for (var index = 0; index < 6; index++) {
+  Future<void> settle(WidgetTester tester, [int frames = 6]) async {
+    for (var index = 0; index < frames; index++) {
       await tester.pump(const Duration(milliseconds: 60));
     }
   }
@@ -132,6 +132,54 @@ void main() {
     expect(find.text('Take a photo of a sheet'), findsOneWidget);
     expect(find.text('Choose photos'), findsOneWidget);
     expect(find.text('Import a layout pack'), findsOneWidget);
+  });
+
+  testWidgets('a product can be fixed from the viewer', (tester) async {
+    await open(tester);
+    await tester.enterText(find.byType(TextField), '038');
+    await tester.pump(const Duration(milliseconds: 200));
+    await settle(tester);
+    await tester.tap(find.byType(ResultTile).first);
+    await settle(tester);
+
+    // The button sits at the bottom of the details sheet, which scrolls.
+    final fixButton = find.textContaining('Fix it');
+    await tester.ensureVisible(fixButton);
+    await settle(tester);
+    await tester.tap(fixButton);
+    await settle(tester, 12);
+    expect(find.text('Fix this product'), findsOneWidget);
+
+    final codeField = find.widgetWithText(TextField, '7008038');
+    expect(codeField, findsOneWidget);
+    await tester.enterText(find.byType(TextField).first, '7008777');
+    await tester.tap(find.text('Save'));
+    await settle(tester, 12);
+
+    // The correction is saved, and search finds the code it now carries.
+    expect(state.index.search('7008777').hits, isNotEmpty);
+    expect(state.index.search('7008038').hits, isEmpty);
+  });
+
+  testWidgets('the layouts tab offers what needs checking', (tester) async {
+    // Make one product look doubtful, the way a phone-read sheet would.
+    final page = state.layouts.first.pages.first;
+    page.products = [
+      for (final product in page.products)
+        product == page.products.first
+            ? product.copyWith(confidence: 0.2)
+            : product,
+    ];
+
+    await open(tester);
+    await tester.tap(find.text('Layouts'));
+    await settle(tester);
+    expect(find.textContaining('worth checking'), findsOneWidget);
+
+    await tester.tap(find.textContaining('worth checking'));
+    await settle(tester);
+    expect(find.text('To check'), findsOneWidget);
+    expect(find.text('Fix'), findsWidgets);
   });
 
   testWidgets('with nothing imported the app asks for a pack', (tester) async {

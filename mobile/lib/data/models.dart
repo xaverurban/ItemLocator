@@ -57,8 +57,45 @@ class Product {
   final List<String> tags;
   final bool manuallyEdited;
 
-  bool get needsChecking =>
-      confidence < 0.72 || name.isEmpty || tags.contains('unreadable');
+  bool get needsChecking {
+    if (manuallyEdited) return false;
+    return confidence < 0.72 ||
+        code.isEmpty ||
+        name.isEmpty ||
+        cases == null ||
+        tags.contains('unreadable') ||
+        tags.contains('unplaced');
+  }
+
+  Product copyWith({
+    String? code,
+    String? name,
+    int? cases,
+    bool clearCases = false,
+    BBox? bbox,
+    BBox? imageBbox,
+    int? bay,
+    int? shelf,
+    int? positionLeft,
+    int? positionRight,
+    double? confidence,
+    List<String>? tags,
+    bool? manuallyEdited,
+  }) =>
+      Product(
+        code: code ?? this.code,
+        name: name ?? this.name,
+        cases: clearCases ? null : (cases ?? this.cases),
+        bbox: bbox ?? this.bbox,
+        imageBbox: imageBbox ?? this.imageBbox,
+        bay: bay ?? this.bay,
+        shelf: shelf ?? this.shelf,
+        positionLeft: positionLeft ?? this.positionLeft,
+        positionRight: positionRight ?? this.positionRight,
+        confidence: confidence ?? this.confidence,
+        tags: tags ?? this.tags,
+        manuallyEdited: manuallyEdited ?? this.manuallyEdited,
+      );
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
         code: (json['code'] ?? '') as String,
@@ -154,7 +191,7 @@ class PlanogramPage {
   final int? totalPages;
   final List<double> size;
   final List<Bay> bays;
-  final List<Product> products;
+  List<Product> products;
   String imagePath;
   final List<String> warnings;
   final bool customerFlowReversed;

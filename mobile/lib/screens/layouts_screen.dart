@@ -5,9 +5,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import 'package:share_plus/share_plus.dart';
+
 import '../app_state.dart';
+import '../data/editing.dart' as editing;
 import '../data/models.dart';
 import '../theme.dart' as palette;
+import 'check_screen.dart';
 import 'viewer_screen.dart';
 
 class LayoutsScreen extends StatelessWidget {
@@ -71,6 +75,8 @@ class _LayoutCard extends StatelessWidget {
 
   final Layout layout;
 
+  int get _toCheck => editing.productsToCheck(layout).length;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -105,12 +111,48 @@ class _LayoutCard extends StatelessWidget {
                 ),
               ),
               IconButton(
+                icon: const Icon(Icons.ios_share, color: palette.textDim),
+                tooltip: 'Send this layout to the desktop',
+                onPressed: () => _export(context),
+              ),
+              IconButton(
                 icon: const Icon(Icons.delete_outline, color: palette.textDim),
                 tooltip: 'Remove this layout',
                 onPressed: () => _confirmDelete(context),
               ),
             ],
           ),
+          if (_toCheck > 0) ...[
+            const SizedBox(height: 12),
+            InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => CheckScreen(layout: layout),
+              )),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: palette.amber.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: palette.amber.withValues(alpha: 0.45)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.fact_check_outlined,
+                        size: 18, color: palette.amber),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        '$_toCheck product${_toCheck == 1 ? '' : 's'} worth checking',
+                        style: const TextStyle(fontSize: 13, color: palette.amber),
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, size: 18, color: palette.amber),
+                  ],
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           SizedBox(
             height: 132,
@@ -125,6 +167,22 @@ class _LayoutCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _export(BuildContext context) async {
+    final state = AppScope.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final pack = await state.exportLayout(layout);
+      await Share.shareXFiles(
+        [XFile(pack.file.path)],
+        subject: '${layout.title} layout pack',
+        text: 'ShelfFinder layout pack: ${pack.describe()}',
+      );
+    } catch (error) {
+      messenger.showSnackBar(
+          SnackBar(content: Text('That layout could not be exported: $error')));
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context) async {

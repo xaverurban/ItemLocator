@@ -66,12 +66,14 @@ class LibraryStore {
   }
 
   Future<void> save() async {
+    // Rebuild first: search should reflect a correction the moment it is made,
+    // not once the file has finished being written.
+    index.rebuild(layouts);
     await directory.create(recursive: true);
     await _manifest.writeAsString(jsonEncode({
       'schema_version': packSchemaVersion,
       'layouts': [for (final layout in layouts) layout.toStoredJson()],
     }));
-    index.rebuild(layouts);
   }
 
   /// Read a `.zip` layout pack exported by the desktop app.

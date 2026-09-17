@@ -113,6 +113,14 @@ Sheets get onto the phone two ways - **Layouts → Add sheets**:
   bay, shelf, notch, position, cases and both neighbours underneath.
 * Tapping any product on the sheet shows its card instead.
 * Pinch to zoom, drag to pan.
+* **Fix it** on any product corrects the code, name or cases - or removes
+  something that was never a product. A correction counts as checked and stops
+  being flagged, exactly as on the desktop.
+* A layout that has anything doubtful shows **N products worth checking**, which
+  opens a list of them, least confident first, each with *See it* and *Fix*.
+* **Share** on a layout writes a pack and sends it wherever Android can - so a
+  sheet photographed at the shelf, corrected on the phone, goes back to the
+  desktop as the same `.zip` the desktop exports.
 
 Working on it:
 

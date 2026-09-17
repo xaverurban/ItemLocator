@@ -9,6 +9,7 @@ import '../data/models.dart';
 import '../theme.dart' as palette;
 import '../widgets/page_canvas.dart';
 import '../widgets/result_card.dart';
+import 'edit_product_sheet.dart';
 
 class ViewerScreen extends StatefulWidget {
   const ViewerScreen({
@@ -118,7 +119,13 @@ class _ViewerScreenState extends State<ViewerScreen> {
             ),
           ),
           if (location != null)
-            _DetailsSheet(location: location)
+            _DetailsSheet(
+              location: location,
+              onEdit: () async {
+                final changed = await editProduct(context, _page, product!);
+                if (changed && mounted) setState(() {});
+              },
+            )
           else
             const _TapHint(),
         ],
@@ -128,9 +135,10 @@ class _ViewerScreenState extends State<ViewerScreen> {
 }
 
 class _DetailsSheet extends StatelessWidget {
-  const _DetailsSheet({required this.location});
+  const _DetailsSheet({required this.location, required this.onEdit});
 
   final Location location;
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +152,20 @@ class _DetailsSheet extends StatelessWidget {
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
-        child: ResultCard(location: location),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ResultCard(location: location),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: onEdit,
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              label: Text(location.product.manuallyEdited
+                  ? 'Edit this product'
+                  : 'Something wrong? Fix it'),
+            ),
+          ],
+        ),
       ),
     );
   }

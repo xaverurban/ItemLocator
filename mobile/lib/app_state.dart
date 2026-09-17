@@ -8,9 +8,11 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'data/editing.dart' as editing;
 import 'data/library_store.dart';
 import 'data/models.dart';
 import 'data/photo_import.dart';
+import 'data/pack_export.dart';
 import 'data/photo_parser.dart';
 import 'data/search.dart';
 import 'theme.dart' as palette;
@@ -113,6 +115,34 @@ class AppState extends ChangeNotifier {
     final stored = await store.addPhotoPages(parsed);
     notifyListeners();
     return (stored, warnings);
+  }
+
+  /// Save a correction made on the phone.
+  Future<void> saveProductEdit(
+    PlanogramPage page,
+    Product product, {
+    String? code,
+    String? name,
+    int? cases,
+    bool clearCases = false,
+  }) async {
+    page.products = editing.updateProduct(page, product,
+        code: code, name: name, cases: cases, clearCases: clearCases);
+    await store.save();
+    notifyListeners();
+  }
+
+  Future<void> deleteProduct(PlanogramPage page, Product product) async {
+    page.products = editing.deleteProduct(page, product);
+    await store.save();
+    notifyListeners();
+  }
+
+  /// Write a layout back out as a pack the desktop can read.
+  Future<ExportedPack> exportLayout(Layout layout) async {
+    final folder = await exportDirectory(store.directory);
+    final destination = File(p.join(folder.path, packFileName(layout)));
+    return exportPack([layout], destination);
   }
 
   Future<void> deleteLayout(String layoutId) async {
