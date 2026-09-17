@@ -6,10 +6,10 @@ Type part of a product code and get the page, bay, shelf and position it belongs
 on, with the product highlighted on the sheet. Works fully offline: the sheets
 are internal store documents and never leave the machine.
 
-**Status: phase 3 (desktop app).** A dark, keyboard-driven desktop app that
-imports sheets, searches codes as you type and shows the product highlighted on
-the page - plus the command line tool underneath it. The review and edit screen
-comes in phase 4.
+**Status: phase 4 (review and edit).** A dark, keyboard-driven desktop app that
+imports sheets, searches codes as you type, shows the product highlighted on the
+page, and lets you correct anything the parser got wrong before you rely on it.
+An Android app reads the same layouts on the shop floor.
 
 ---
 
@@ -52,8 +52,32 @@ three or more digits of a code.
 | `Enter` | open the top result |
 | `Esc` | clear the search and the highlight |
 | `←` `→` | previous / next page |
+| `Ctrl+R` | review and correct the open page |
 | `Ctrl+B` | show or hide the layouts panel |
 | `Ctrl+,` | settings |
+
+## Checking a page
+
+OCR gets things wrong, and a wrong shelf number sends someone to the wrong aisle.
+**Review page** (`Ctrl+R`) opens the page with everything the parser decided laid
+over it, and lets you put it right:
+
+* Products it is unsure of are outlined in amber, ones you have checked in green.
+  The list beside the page shows the same, and **Only what needs checking**
+  narrows it to those.
+* Click a box or a row to select it, then fix the **code**, **name** or **cases**.
+  A correction marks the product as checked, so it stops being flagged.
+* **Drag a box** to move a product, or drag its corner to resize. Drop it on
+  another shelf or in another bay and its bay, shelf and position all follow.
+* **Add product** (`Ctrl+N`) then draw a box round a label the parser missed.
+  **Delete** removes a false detection. Either way the rest of the shelf
+  renumbers.
+* **Drag the dashed blue lines** to move a bay divider, or the green ones to move
+  a shelf edge. Everything on the page is placed again afterwards.
+* Editing a shelf's **notch, depth or slope** makes those shelves that bay's own,
+  which is how you fix a bay that was given its neighbour's shelves.
+* **Save this page** writes it back, and search uses it immediately. **Cancel**
+  leaves the stored page untouched - the screen works on a copy.
 
 Settings cover the highlight colour, the UI accent colour, how much the rest of
 the page dims, which layout to search by default, and where the data folder
@@ -218,9 +242,9 @@ same labels read correctly on the scan.
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest             # 95 fast unit tests
-.venv/bin/python -m pytest -m ui       # 19 UI tests, headless
-.venv/bin/python -m pytest -m slow     # 11 end-to-end, loads the OCR models (~20s)
+.venv/bin/python -m pytest             # 117 fast unit tests
+.venv/bin/python -m pytest -m ui       # 30 UI tests, headless
+.venv/bin/python -m pytest -m slow     # 22 end-to-end, loads the OCR models (~45s)
 ```
 
 The UI tests run against a real main window on Qt's offscreen platform, so they
@@ -302,6 +326,8 @@ shelffinder/
     textparse.py   notch / cases / code / header rules, OCR-tolerant
     parser.py      puts a page together
     render.py      debug overlays
+    editing.py     corrections, and the placement bookkeeping they trigger
+    pack.py        layout packs: export and import
     store.py       SQLite persistence and re-import handling
     search.py      the code index and matching rules
     locate.py      a hit turned into the result card, neighbours included
@@ -310,6 +336,7 @@ shelffinder/
     app.py         entry point
     main_window.py sidebar, search, viewer and result card wired together
     viewer.py      zoom, pan, highlight with dim, mapped onto either image
+    review.py      review_canvas.py  the check-and-correct screen
     search_bar.py  debounced search box and the result list
     result_card.py the big numbers
     sidebar.py     layouts, pages and the thumbnail strip
@@ -330,6 +357,6 @@ reused behind a desktop UI, a phone app or a batch job.
 1. ~~Parser prototype (CLI, straightened pages, overlays, JSON)~~ - done
 2. ~~Search logic with unit tests~~ - done
 3. ~~Desktop UI: import, viewer, search, highlight~~ - done
-4. Review and edit screen - next
+4. ~~Review and edit screen~~ - done
 5. ~~Layout pack export/import, Windows `.exe`~~ - done (settings already in)
 6. ~~Android app~~ - done; iOS is the same codebase when wanted

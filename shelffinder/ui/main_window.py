@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (QApplication, QFileDialog, QFrame, QHBoxLayout, Q
                                QLabel, QMainWindow, QMenu, QMessageBox, QProgressBar,
                                QPushButton, QSplitter, QStackedWidget, QVBoxLayout, QWidget)
 
+from ..core import editing
 from ..core.imaging import SUPPORTED_EXTENSIONS
 from ..core.library import ImportReport, Library
 from ..core.locate import locate
@@ -19,6 +20,7 @@ from ..core.store import ImportMode
 from . import theme
 from .import_task import ImportWorker, describe, describe_report
 from .result_card import ResultCard
+from .review import ReviewDialog
 from .search_bar import ResultList, SearchBar
 from .settings import AppSettings
 from .settings_dialog import SettingsDialog
@@ -138,6 +140,11 @@ class MainWindow(QMainWindow):
         self.page_label = QLabel("")
         self.page_label.setObjectName("Hint")
         controls.addWidget(self.page_label, 1)
+        self.review_button = QPushButton("Review page")
+        self.review_button.setToolTip("Check what was read on this page and fix it (Ctrl+R)")
+        self.review_button.clicked.connect(self.review_current_page)
+        controls.addWidget(self.review_button)
+
         self.original_toggle = QPushButton("Original photo")
         self.original_toggle.setCheckable(True)
         self.original_toggle.setToolTip("Switch between the straightened page and the photo")
@@ -190,6 +197,7 @@ class MainWindow(QMainWindow):
         shortcut("Left", lambda: self.step_page(-1))
         shortcut("Right", lambda: self.step_page(1))
         shortcut("Ctrl+B", self.sidebar_button.click)
+        shortcut("Ctrl+R", self.review_current_page)
         shortcut("Escape", self._clear_search)
 
     # ------------------------------------------------------- settings
@@ -253,10 +261,16 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentIndex(1)
         title = layout.title if layout else ""
         total = f" of {page.total_pages}" if page.total_pages else ""
-        warnings = f"   ·   {len(page.warnings)} note(s)" if page.warnings else ""
+        summary = editing.review_summary(page)
+        note = f"   ·   {summary.needs_checking} to check" if summary.needs_checking else ""
         self.page_label.setText(f"{title}   ·   page {page.number}{total}   ·   "
-                                f"{len(page.products)} products{warnings}")
+                                f"{len(page.products)} products{note}")
         self.page_label.setToolTip("\n".join(page.warnings))
+        self.page_label.setStyleSheet(
+            f"color: {theme.AMBER};" if summary.needs_checking else "")
+        self.review_button.setText(
+            f"Review page ({summary.needs_checking})" if summary.needs_checking
+            else "Review page")
         self.thumbnails.set_pages(layout, lambda p: self.library.page_image_path(p), page.id)
         self.sidebar.select_page(page)
 
@@ -480,6 +494,37 @@ class MainWindow(QMainWindow):
         if clicked is keep:
             return ImportMode.KEEP_BOTH
         return None
+
+    # ------------------------------------------------------------ review
+    def review_current_page(self) -> None:
+        """Open the page for checking and correcting."""
+
+        if self._current_page is None:
+            self.statusBar().showMessage("Open a page first", 4000)
+            return
+        path = self.library.page_image_path(self._current_page)
+        if not path:
+            QMessageBox.information(self, "No picture for this page",
+                                    "The straightened image for this page is missing, so "
+                                    "there is nothing to review against.")
+            return
+
+        dialog = ReviewDialog(self._current_page, path, self)
+        dialog.pageSaved.connect(self._save_reviewed_page)
+        dialog.exec()
+
+    def _save_reviewed_page(self, page: Page) -> None:
+        try:
+            self.library.save_page(page)
+        except ValueError as error:
+            QMessageBox.warning(self, "Could not save", str(error))
+            return
+        self.refresh_library()
+        stored = self._find_stored_page(page.id)
+        if stored is not None:
+            self.open_page(stored, keep_view=True)
+        summary = editing.review_summary(page)
+        self.statusBar().showMessage(f"Saved. {summary.describe()}", 8000)
 
     # ------------------------------------------------------- layout packs
     def export_pack(self) -> None:

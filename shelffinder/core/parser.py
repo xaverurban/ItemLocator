@@ -11,6 +11,9 @@ import cv2
 import numpy as np
 
 from . import structure, textparse
+from .editing import (assign_image_boxes as _assign_image_boxes,
+                      assign_positions as _assign_positions,
+                      bay_for as _bay_for, shelf_for as _shelf_for)
 from .imaging import Straightened, straighten
 from .models import BBox, Bay, Page, Product, Shelf
 from .ocr import OcrEngine, TextLine
@@ -705,63 +708,3 @@ def _merge_notch_entries(entries: list[tuple[float, textparse.NotchInfo, TextLin
             merged.append(entry)
     merged.sort(key=lambda item: item[0])
     return merged
-
-
-def _bay_for(bays: list[Bay], x: float) -> Optional[Bay]:
-    for bay in bays:
-        if bay.x_range[0] <= x <= bay.x_range[1]:
-            return bay
-    return min(bays, key=lambda b: min(abs(b.x_range[0] - x), abs(b.x_range[1] - x))) \
-        if bays else None
-
-
-def _shelf_for(bay: Bay, y: float) -> Optional[Shelf]:
-    for shelf in bay.shelves:
-        if shelf.y_range[0] <= y <= shelf.y_range[1]:
-            return shelf
-    if not bay.shelves:
-        return None
-    return min(bay.shelves, key=lambda s: min(abs(s.y_range[0] - y), abs(s.y_range[1] - y)))
-
-
-def _assign_positions(products: list[Product]) -> None:
-    groups: dict[tuple[int, int], list[Product]] = {}
-    for product in products:
-        groups.setdefault((product.bay, product.shelf), []).append(product)
-    for group in groups.values():
-        group.sort(key=lambda p: p.bbox.cx if p.bbox else 0.0)
-        for position, product in enumerate(group, start=1):
-            product.position_left = position
-            product.position_right = len(group) - position + 1
-
-
-def _assign_image_boxes(products: list[Product], bays: list[Bay]) -> None:
-    """Widen each label box to the product's slice of its shelf, for highlighting."""
-
-    groups: dict[tuple[int, int], list[Product]] = {}
-    for product in products:
-        groups.setdefault((product.bay, product.shelf), []).append(product)
-    bay_by_index = {bay.index: bay for bay in bays}
-    for (bay_index, shelf_index), group in groups.items():
-        bay = bay_by_index.get(bay_index)
-        shelf = None
-        if bay:
-            shelf = next((s for s in bay.shelves if s.index_from_top == shelf_index), None)
-        group.sort(key=lambda p: p.bbox.cx if p.bbox else 0.0)
-        for position, product in enumerate(group):
-            if product.bbox is None:
-                continue
-            left_edge = bay.x_range[0] if bay else product.bbox.x
-            right_edge = bay.x_range[1] if bay else product.bbox.x2
-            if position > 0:
-                previous = group[position - 1]
-                left_edge = (previous.bbox.x2 + product.bbox.x) / 2
-            if position < len(group) - 1:
-                following = group[position + 1]
-                right_edge = (product.bbox.x2 + following.bbox.x) / 2
-            top = shelf.y_range[0] if shelf else product.bbox.y
-            bottom = shelf.y_range[1] if shelf else product.bbox.y2
-            product.image_bbox = BBox.from_xyxy(min(left_edge, product.bbox.x),
-                                                min(top, product.bbox.y),
-                                                max(right_edge, product.bbox.x2),
-                                                max(bottom, product.bbox.y2))
