@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shelffinder_mobile/data/models.dart';
 import 'package:shelffinder_mobile/data/search.dart';
 
 import 'helpers.dart';

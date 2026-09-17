@@ -1,10 +1,11 @@
 /// Reads a pack the desktop app actually exported, not a hand-written one.
+library;
+
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelffinder_mobile/data/library_store.dart';
-import 'package:shelffinder_mobile/data/search.dart';
 
 File fixture() =>
     File(p.join('test', 'fixtures', 'household.shelfpack.zip'));

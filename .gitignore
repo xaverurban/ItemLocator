@@ -1,13 +1,15 @@
 __pycache__/
 *.py[cod]
 .venv/
-out/
-out*/
-data/
-dist/
-build/
-dist/
-*.egg-info/
 .pytest_cache/
-samples/synthetic/
-samples/private/
+*.egg-info/
+
+# Anchored to the repository root on purpose: an unanchored "data/" also
+# matched mobile/lib/data/, which quietly left four files out of the commit.
+/out/
+/out*/
+/data/
+/dist/
+/build/
+/samples/synthetic/
+/samples/private/

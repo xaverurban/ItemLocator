@@ -1,4 +1,6 @@
 /// Drives the real screens: type a code, open the result, read the card.
+library;
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
