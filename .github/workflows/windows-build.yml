@@ -1,0 +1,77 @@
+name: Windows build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**"]
+    paths:
+      - "shelffinder/**"
+      - "packaging/**"
+      - "requirements.txt"
+      - ".github/workflows/windows-build.yml"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller==6.11.1
+
+      - name: Run the test suite
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          python -m pytest -q
+          python -m pytest -q -m ui
+
+      - name: Build
+        run: pyinstaller packaging/shelffinder.spec --noconfirm --clean
+
+      - name: Self-test the packaged build
+        working-directory: dist/ShelfFinder
+        run: ./ShelfFinder-console.exe --selftest
+
+      - name: Report the build size
+        run: |
+          $size = (Get-ChildItem dist/ShelfFinder -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB
+          Write-Host ("build size: {0:N0} MB" -f $size)
+          Get-ChildItem dist/ShelfFinder | Select-Object -First 12 Name, Length
+
+      - name: Add a readme next to the app
+        run: |
+          @"
+          ShelfFinder
+          ===========
+
+          Double-click ShelfFinder.exe.
+
+          Windows will warn that the app is from an unknown publisher, because it
+          is not code-signed: choose More info, then Run anyway.
+
+          Everything stays on this machine. Imported sheets and the database live
+          in %APPDATA%\ShelfFinder\library, and that folder can be changed in
+          Settings. A log is written to shelffinder.log in the same folder.
+
+          If the window does not open, run ShelfFinder-console.exe from a command
+          prompt to see the error, or ShelfFinder-console.exe --selftest to check
+          the build.
+          "@ | Out-File -FilePath dist/ShelfFinder/READ-ME-FIRST.txt -Encoding utf8
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ShelfFinder-windows
+          path: dist/ShelfFinder
+          retention-days: 30
+          compression-level: 6
