@@ -28,6 +28,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller==6.11.1
+          # RapidOCR depends on the full opencv-python, which drags in ~100 MB of
+          # video and GUI libraries this app never uses. The headless build
+          # provides the same cv2 module, so drop the heavy one and reinstate
+          # headless afterwards (they share the same files).
+          pip uninstall -y opencv-python
+          pip install --force-reinstall --no-deps opencv-python-headless
 
       - name: Run the test suite
         env:
