@@ -166,6 +166,7 @@ class Page:
     header_text: str = ""
     layout_name: str = ""
     layout_size: str = ""
+    customer_flow_reversed: bool = False   # the flow arrow points right by default
     tags: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     confidence: float = 1.0
@@ -200,6 +201,7 @@ class Page:
             "header_text": self.header_text,
             "layout_name": self.layout_name,
             "layout_size": self.layout_size,
+            "customer_flow_reversed": self.customer_flow_reversed,
             "tags": list(self.tags),
             "warnings": list(self.warnings),
             "confidence": self.confidence,
@@ -222,6 +224,7 @@ class Page:
             header_text=d.get("header_text", ""),
             layout_name=d.get("layout_name", ""),
             layout_size=d.get("layout_size", ""),
+            customer_flow_reversed=bool(d.get("customer_flow_reversed", False)),
             tags=list(d.get("tags", [])),
             warnings=list(d.get("warnings", [])),
             confidence=float(d.get("confidence", 1.0)),
@@ -242,6 +245,13 @@ class Layout:
     @property
     def title(self) -> str:
         return f"{self.name} {self.size}".strip()
+
+    def duplicate_pages(self) -> dict[int, list["Page"]]:
+        """Page numbers that arrived more than once - the same sheet shot twice."""
+        by_number: dict[int, list["Page"]] = {}
+        for page in self.pages:
+            by_number.setdefault(page.number, []).append(page)
+        return {number: pages for number, pages in by_number.items() if len(pages) > 1}
 
     def iter_products(self) -> Iterator[tuple[Page, Product]]:
         for page in self.pages:

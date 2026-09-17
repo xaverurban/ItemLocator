@@ -20,9 +20,14 @@ import cv2
 
 from .core import render
 from .core.imaging import iter_input_files, load_source_pages
+from .core.locate import locate_hit
 from .core.models import Layout, group_pages_into_layouts
 from .core.ocr import RapidOcrEngine
 from .core.parser import ParseOptions, parse_image
+from .core.search import ProductIndex
+from .core.store import ImportMode, LayoutStore
+
+DEFAULT_DB = os.path.join("data", "shelffinder.sqlite")
 
 log = logging.getLogger("shelffinder")
 
@@ -81,6 +86,87 @@ def cmd_parse(args: argparse.Namespace) -> int:
     for layout in layouts:
         print(f"  {layout.title}: {len(layout.pages)} page(s), "
               f"{sum(len(p.products) for p in layout.pages)} products")
+        for number, duplicates in layout.duplicate_pages().items():
+            sources = ", ".join(os.path.basename(page.source_file) for page in duplicates)
+            print(f"  ! page {number} came in {len(duplicates)} times ({sources}). "
+                  f"Keep the best one and re-import, or they will both be searchable.")
+
+    if args.db:
+        mode = ImportMode(args.on_existing)
+        with LayoutStore(args.db) as store:
+            for layout in layouts:
+                for existing in store.find_matching(layout.name, layout.size):
+                    print(f"  note: '{existing.title}' is already stored "
+                          f"({existing.page_count} page(s), imported {existing.imported_at}) "
+                          f"- importing with --on-existing {mode.value}")
+                store.add_layout(layout, mode)
+            print(f"  stored in {args.db}: {store.count_products()} products in "
+                  f"{len(store.list_layouts())} layout(s)")
+    return 0
+
+
+def _load_index(args: argparse.Namespace) -> tuple[ProductIndex, list[Layout]]:
+    layouts: list[Layout] = []
+    if args.json:
+        with open(args.json, encoding="utf-8") as handle:
+            payload = json.load(handle)
+        layouts = [Layout.from_dict(item) for item in payload]
+    else:
+        with LayoutStore(args.db) as store:
+            layouts = store.load_all()
+    return ProductIndex(layouts), layouts
+
+
+def _print_hit(position: int, hit) -> None:
+    before, matched, after = hit.highlight()
+    card = locate_hit(hit)
+    print(f"\n[{position}] {before}[{matched}]{after}  {hit.product.name}")
+    for line in card.summary_lines()[1:]:
+        print(f"    {line}")
+    if card.needs_review:
+        print("    ! parsed with low confidence or shared shelves - check the sheet")
+
+
+def cmd_search(args: argparse.Namespace) -> int:
+    index, layouts = _load_index(args)
+    if not len(index):
+        print("Nothing to search yet. Parse some sheets first "
+              "(shelffinder parse ... --db data/shelffinder.sqlite).", file=sys.stderr)
+        return 2
+
+    layout_ids = None
+    if args.layout:
+        wanted = args.layout.lower().replace(" ", "")
+        layout_ids = [layout.id for layout in layouts
+                      if wanted in layout.title.lower().replace(" ", "")]
+        if not layout_ids:
+            print(f"No layout matching '{args.layout}'. Known layouts: "
+                  + ", ".join(layout.title for layout in layouts), file=sys.stderr)
+            return 2
+
+    result = index.search(args.query, layout_ids=layout_ids, limit=args.limit)
+    print(result.message())
+    if result.single:
+        _print_hit(1, result.single)
+        return 0
+    for position, hit in enumerate(result.hits, start=1):
+        _print_hit(position, hit)
+    for hit in result.suggestions:
+        card = locate_hit(hit)
+        print(f"\n  did you mean {hit.product.code} ({hit.reason})? "
+              f"{hit.product.name} - {card.page_label()}, {card.bay_label()}")
+    return 0 if result.hits else 1
+
+
+def cmd_layouts(args: argparse.Namespace) -> int:
+    with LayoutStore(args.db) as store:
+        listed = store.list_layouts()
+    if not listed:
+        print(f"No layouts stored in {args.db}.")
+        return 0
+    for layout in listed:
+        print(f"{layout.title}: {layout.page_count} page(s), {layout.product_count} products, "
+              f"imported {layout.imported_at}  [{layout.id}]")
     return 0
 
 
@@ -93,8 +179,28 @@ def build_parser() -> argparse.ArgumentParser:
     parse_cmd.add_argument("--out", default="out", help="output folder (default: out)")
     parse_cmd.add_argument("--tile-size", type=int, default=1400, help="OCR tile size")
     parse_cmd.add_argument("--pdf-dpi", type=int, default=220, help="render DPI for PDFs")
+    parse_cmd.add_argument("--db", nargs="?", const=DEFAULT_DB, default=None,
+                           help=f"also store the result (default path: {DEFAULT_DB})")
+    parse_cmd.add_argument("--on-existing", choices=[mode.value for mode in ImportMode],
+                           default=ImportMode.KEEP_BOTH.value,
+                           help="what to do when the layout is already stored")
     parse_cmd.add_argument("-v", "--verbose", action="store_true")
     parse_cmd.set_defaults(func=cmd_parse)
+
+    search_cmd = sub.add_parser("search", help="find a product by code")
+    search_cmd.add_argument("query", help="three or more digits of the code")
+    search_cmd.add_argument("--db", default=DEFAULT_DB, help="layout database to search")
+    search_cmd.add_argument("--json", default=None,
+                            help="search a layouts.json instead of the database")
+    search_cmd.add_argument("--layout", default=None, help="limit to one layout")
+    search_cmd.add_argument("--limit", type=int, default=20)
+    search_cmd.add_argument("-v", "--verbose", action="store_true")
+    search_cmd.set_defaults(func=cmd_search)
+
+    layouts_cmd = sub.add_parser("layouts", help="list the stored layouts")
+    layouts_cmd.add_argument("--db", default=DEFAULT_DB)
+    layouts_cmd.add_argument("-v", "--verbose", action="store_true")
+    layouts_cmd.set_defaults(func=cmd_layouts)
     return parser
 
 

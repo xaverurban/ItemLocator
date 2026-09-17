@@ -487,6 +487,7 @@ def parse_image(image: np.ndarray, ocr_engine: OcrEngine, source_file: str = "",
         if numbers:
             page.number, page.total_pages = numbers
             break
+    page.customer_flow_reversed = _flow_is_reversed(lines)
     for line in lines:
         text = line.text.strip()
         if textparse.is_marker(text) and text.upper() not in {"IE"}:
@@ -634,6 +635,25 @@ def parse_image(image: np.ndarray, ocr_engine: OcrEngine, source_file: str = "",
         page.warnings.append("No 'Notch:' lines were read on this page.")
 
     return page, flat
+
+
+def _flow_is_reversed(lines: list[TextLine]) -> bool:
+    """Read the "Customer Flow ----->" arrow. Left to right unless it says otherwise.
+
+    OCR mangles the dashes, so only a clear arrow head flips the direction.
+    """
+
+    flow_lines = [line for line in lines
+                  if "customerflow" in "".join(line.text.lower().split())]
+    if not flow_lines:
+        return False
+    anchor = flow_lines[0]
+    nearby = [line for line in lines
+              if abs(line.bbox.cy - anchor.bbox.cy) < max(anchor.bbox.h * 3.5, 60)
+              and abs(line.bbox.cx - anchor.bbox.cx) < max(anchor.bbox.w * 4, 400)]
+    rightwards = sum(text.count(">") for text in (line.text for line in nearby))
+    leftwards = sum(text.count("<") for text in (line.text for line in nearby))
+    return leftwards > rightwards
 
 
 def _header_title(header_lines: list[TextLine]) -> str:

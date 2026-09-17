@@ -1,0 +1,1305 @@
+{
+  "id": "b5088af25938",
+  "number": 1,
+  "total_pages": 2,
+  "source_file": "samples/synthetic/page_1_clean.png",
+  "source_page_index": 0,
+  "original_image": "samples/synthetic/page_1_clean.png",
+  "straightened_image": "out2/page_1_clean_straight.png",
+  "transform": [
+    [
+      0.8844601614596772,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.884465259447474,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "size": [
+    2192,
+    3100
+  ],
+  "header_text": "IEHousehold4.5m .5m",
+  "layout_name": "IEHousehold",
+  "layout_size": "4.5m",
+  "customer_flow_reversed": false,
+  "tags": [
+    "SK",
+    "NTA"
+  ],
+  "warnings": [],
+  "confidence": 0.980547990790488,
+  "bays": [
+    {
+      "index": 1,
+      "x_range": [
+        78.0,
+        758.5
+      ],
+      "shelves_inherited": false,
+      "shelves": [
+        {
+          "index_from_top": 1,
+          "y_range": [
+            253.5,
+            525.75
+          ],
+          "notch": 33,
+          "depth_cm": 62.0,
+          "slope": 0.0,
+          "notch_text": "Notch:33Denth:62cmSlope:Q",
+          "confidence": 0.9694046711921692,
+          "inherited": false
+        },
+        {
+          "index_from_top": 2,
+          "y_range": [
+            525.75,
+            1040.25
+          ],
+          "notch": 26,
+          "depth_cm": 62.0,
+          "slope": 0.0,
+          "notch_text": "Notch:26Depth:62cmSlope:0",
+          "confidence": 0.9876600623130798,
+          "inherited": false
+        },
+        {
+          "index_from_top": 3,
+          "y_range": [
+            1040.25,
+            1553.75
+          ],
+          "notch": 20,
+          "depth_cm": 62.0,
+          "slope": 0.0,
+          "notch_text": "Notch:20Depth:62cmSlope:0",
+          "confidence": 0.9900640249252319,
+          "inherited": false
+        },
+        {
+          "index_from_top": 4,
+          "y_range": [
+            1553.75,
+            2067.75
+          ],
+          "notch": 13,
+          "depth_cm": 62.0,
+          "slope": 0.0,
+          "notch_text": "Notch:13Depth:62cmSlope:0",
+          "confidence": 0.9934530520439148,
+          "inherited": false
+        },
+        {
+          "index_from_top": 5,
+          "y_range": [
+            2067.75,
+            2826.0
+          ],
+          "notch": 3,
+          "depth_cm": 80.0,
+          "slope": 0.0,
+          "notch_text": "Notch:3Depth:80cmSlope:0",
+          "confidence": 0.9868753130237261,
+          "inherited": false
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "x_range": [
+        758.5,
+        1436.5
+      ],
+      "shelves_inherited": false,
+      "shelves": [
+        {
+          "index_from_top": 1,
+          "y_range": [
+            253.5,
+            698.0
+          ],
+          "notch": 33,
+          "depth_cm": 62.0,
+          "slope": 0.0,
+          "notch_text": "Notch:33Depth:62cmSlope:0",
+          "confidence": 0.983357481956482,
+          "inherited": false
+        },
+        {
+          "index_from_top": 2,
+          "y_range": [
+            698.0,
+            1554.75
+          ],
+          "notch": 2,
+          "depth_cm": 80.0,
+          "slope": 0.0,
+          "notch_text": "Notch:2Depth:80cmSlope:0",
+          "confidence": 0.9839365258812904,
+          "inherited": false
+        },
+        {
+          "index_from_top": 3,
+          "y_range": [
+            1554.75,
+            2826.0
+          ],
+          "notch": 3,
+          "depth_cm": 80.0,
+          "slope": 0.0,
+          "notch_text": "Notch:3Depth:80cmSlope:0",
+          "confidence": 0.987022690474987,
+          "inherited": false
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "x_range": [
+        1436.5,
+        2117.0
+      ],
+      "shelves_inherited": false,
+      "shelves": [
+        {
+          "index_from_top": 1,
+          "y_range": [
+            253.5,
+            590.0
+          ],
+          "notch": 33,
+          "depth_cm": 62.0,
+          "slope": 0.0,
+          "notch_text": "Notch:33Depth:62cmSlope:0",
+          "confidence": 0.9861212420463562,
+          "inherited": false
+        },
+        {
+          "index_from_top": 2,
+          "y_range": [
+            590.0,
+            1233.0
+          ],
+          "notch": 19,
+          "depth_cm": 62.0,
+          "slope": 0.0,
+          "notch_text": "Notch:19Denth:62cmSlope:0",
+          "confidence": 0.9495327579975128,
+          "inherited": false
+        },
+        {
+          "index_from_top": 3,
+          "y_range": [
+            1233.0,
+            1876.0
+          ],
+          "notch": 11,
+          "depth_cm": 62.0,
+          "slope": 0.0,
+          "notch_text": "Notch:11Depth:62cmSlope:0",
+          "confidence": 0.9842053914070129,
+          "inherited": false
+        },
+        {
+          "index_from_top": 4,
+          "y_range": [
+            1876.0,
+            2826.0
+          ],
+          "notch": 3,
+          "depth_cm": 80.0,
+          "slope": 0.0,
+          "notch_text": "Notch:3Depth:80cmSlope:0",
+          "confidence": 0.9813636963566145,
+          "inherited": false
+        }
+      ]
+    }
+  ],
+  "products": [
+    {
+      "code": "7127926",
+      "name": "VintageFloral Diffuser",
+      "cases": 3,
+      "bbox": {
+        "x": 490.0,
+        "y": 488.0,
+        "w": 95.0,
+        "h": 66.0
+      },
+      "image_bbox": {
+        "x": 483.5,
+        "y": 253.5,
+        "w": 120.5,
+        "h": 300.5
+      },
+      "bay": 1,
+      "shelf": 1,
+      "position_left": 4,
+      "position_right": 2,
+      "confidence": 0.9637864306569099,
+      "tags": [],
+      "manually_edited": false,
+      "id": "9d8c23a391a3"
+    },
+    {
+      "code": "7182265",
+      "name": "BlackDiffuser SK1",
+      "cases": 2,
+      "bbox": {
+        "x": 90.0,
+        "y": 489.0,
+        "w": 95.0,
+        "h": 65.0
+      },
+      "image_bbox": {
+        "x": 78.0,
+        "y": 253.5,
+        "w": 126.5,
+        "h": 300.5
+      },
+      "bay": 1,
+      "shelf": 1,
+      "position_left": 1,
+      "position_right": 5,
+      "confidence": 0.9754849397219144,
+      "tags": [],
+      "manually_edited": false,
+      "id": "4c9e76235ffd"
+    },
+    {
+      "code": "237582",
+      "name": "WhiteDiffuser SK2",
+      "cases": 2,
+      "bbox": {
+        "x": 224.0,
+        "y": 489.0,
+        "w": 96.0,
+        "h": 65.0
+      },
+      "image_bbox": {
+        "x": 204.5,
+        "y": 253.5,
+        "w": 134.5,
+        "h": 300.5
+      },
+      "bay": 1,
+      "shelf": 1,
+      "position_left": 2,
+      "position_right": 4,
+      "confidence": 0.9917130214827401,
+      "tags": [],
+      "manually_edited": false,
+      "id": "e4613d86c062"
+    },
+    {
+      "code": "5231121",
+      "name": "CeremonyOf ScentDiffuser",
+      "cases": 3,
+      "bbox": {
+        "x": 623.0,
+        "y": 489.0,
+        "w": 95.0,
+        "h": 65.0
+      },
+      "image_bbox": {
+        "x": 604.0,
+        "y": 253.5,
+        "w": 154.5,
+        "h": 300.5
+      },
+      "bay": 1,
+      "shelf": 1,
+      "position_left": 5,
+      "position_right": 1,
+      "confidence": 0.985588720866612,
+      "tags": [],
+      "manually_edited": false,
+      "id": "fd72f89b1243"
+    },
+    {
+      "code": "7138709",
+      "name": "DaySpa Diffuser",
+      "cases": 2,
+      "bbox": {
+        "x": 358.0,
+        "y": 494.0,
+        "w": 119.0,
+        "h": 51.0
+      },
+      "image_bbox": {
+        "x": 339.0,
+        "y": 253.5,
+        "w": 144.5,
+        "h": 291.5
+      },
+      "bay": 1,
+      "shelf": 1,
+      "position_left": 3,
+      "position_right": 3,
+      "confidence": 0.9739530841509502,
+      "tags": [],
+      "manually_edited": false,
+      "id": "918726106d15"
+    },
+    {
+      "code": "7008058",
+      "name": "FiashBleachCleaning Spray 800ml",
+      "cases": 2,
+      "bbox": {
+        "x": 1447.0,
+        "y": 554.0,
+        "w": 150.0,
+        "h": 63.0
+      },
+      "image_bbox": {
+        "x": 1436.5,
+        "y": 253.5,
+        "w": 168.5,
+        "h": 363.5
+      },
+      "bay": 3,
+      "shelf": 1,
+      "position_left": 1,
+      "position_right": 4,
+      "confidence": 0.9782581956763017,
+      "tags": [],
+      "manually_edited": false,
+      "id": "74c2a6f3b49b"
+    },
+    {
+      "code": "7008057",
+      "name": "FiashKitchenCleaning Spray 800MI",
+      "cases": 2,
+      "bbox": {
+        "x": 1613.0,
+        "y": 554.0,
+        "w": 154.0,
+        "h": 63.0
+      },
+      "image_bbox": {
+        "x": 1605.0,
+        "y": 253.5,
+        "w": 168.0,
+        "h": 363.5
+      },
+      "bay": 3,
+      "shelf": 1,
+      "position_left": 2,
+      "position_right": 3,
+      "confidence": 0.970273357629776,
+      "tags": [],
+      "manually_edited": false,
+      "id": "c1181bc07e80"
+    },
+    {
+      "code": "7008059",
+      "name": "FlashBathroom Cleaning Spray 800MI",
+      "cases": 2,
+      "bbox": {
+        "x": 1779.0,
+        "y": 554.0,
+        "w": 149.0,
+        "h": 63.0
+      },
+      "image_bbox": {
+        "x": 1773.0,
+        "y": 253.5,
+        "w": 163.5,
+        "h": 363.5
+      },
+      "bay": 3,
+      "shelf": 1,
+      "position_left": 3,
+      "position_right": 2,
+      "confidence": 0.9549293726682663,
+      "tags": [],
+      "manually_edited": false,
+      "id": "2bc21366430d"
+    },
+    {
+      "code": "7022077",
+      "name": "DettolAntibacTrigger",
+      "cases": 4,
+      "bbox": {
+        "x": 1945.0,
+        "y": 562.0,
+        "w": 145.0,
+        "h": 48.0
+      },
+      "image_bbox": {
+        "x": 1936.5,
+        "y": 253.5,
+        "w": 180.5,
+        "h": 356.5
+      },
+      "bay": 3,
+      "shelf": 1,
+      "position_left": 4,
+      "position_right": 1,
+      "confidence": 0.9765599310398102,
+      "tags": [],
+      "manually_edited": false,
+      "id": "c3d38c5106fe"
+    },
+    {
+      "code": "7005368",
+      "name": "Biodegradable AntibacterialWipes",
+      "cases": 8,
+      "bbox": {
+        "x": 1185.0,
+        "y": 658.0,
+        "w": 155.0,
+        "h": 68.0
+      },
+      "image_bbox": {
+        "x": 1096.5,
+        "y": 253.5,
+        "w": 340.0,
+        "h": 472.5
+      },
+      "bay": 2,
+      "shelf": 1,
+      "position_left": 2,
+      "position_right": 1,
+      "confidence": 0.9922823565346854,
+      "tags": [],
+      "manually_edited": false,
+      "id": "4b916e98587a"
+    },
+    {
+      "code": "266326",
+      "name": "BiodegradableFloor Wipes",
+      "cases": 4,
+      "bbox": {
+        "x": 852.0,
+        "y": 658.0,
+        "w": 156.0,
+        "h": 68.0
+      },
+      "image_bbox": {
+        "x": 758.5,
+        "y": 253.5,
+        "w": 338.0,
+        "h": 472.5
+      },
+      "bay": 2,
+      "shelf": 1,
+      "position_left": 1,
+      "position_right": 2,
+      "confidence": 0.9701379656791687,
+      "tags": [],
+      "manually_edited": false,
+      "id": "79f3c91a6b0f"
+    },
+    {
+      "code": "5236708",
+      "name": "WhiteCandlesSK2",
+      "cases": 4,
+      "bbox": {
+        "x": 257.0,
+        "y": 1010.0,
+        "w": 130.0,
+        "h": 49.0
+      },
+      "image_bbox": {
+        "x": 248.0,
+        "y": 525.75,
+        "w": 157.0,
+        "h": 533.25
+      },
+      "bay": 1,
+      "shelf": 2,
+      "position_left": 2,
+      "position_right": 3,
+      "confidence": 0.987343430519104,
+      "tags": [],
+      "manually_edited": false,
+      "id": "295ef9992a35"
+    },
+    {
+      "code": "5236715",
+      "name": "BlackCandleCandles SK2",
+      "cases": 4,
+      "bbox": {
+        "x": 90.0,
+        "y": 1004.0,
+        "w": 149.0,
+        "h": 64.0
+      },
+      "image_bbox": {
+        "x": 78.0,
+        "y": 525.75,
+        "w": 170.0,
+        "h": 542.25
+      },
+      "bay": 1,
+      "shelf": 2,
+      "position_left": 1,
+      "position_right": 4,
+      "confidence": 0.9924246470133463,
+      "tags": [],
+      "manually_edited": false,
+      "id": "bd5ddcf15feb"
+    },
+    {
+      "code": "1003553",
+      "name": "ScentedCandles32h",
+      "cases": 2,
+      "bbox": {
+        "x": 423.0,
+        "y": 1012.0,
+        "w": 144.0,
+        "h": 48.0
+      },
+      "image_bbox": {
+        "x": 405.0,
+        "y": 525.75,
+        "w": 173.5,
+        "h": 534.25
+      },
+      "bay": 1,
+      "shelf": 2,
+      "position_left": 3,
+      "position_right": 2,
+      "confidence": 0.9885274908121895,
+      "tags": [],
+      "manually_edited": false,
+      "id": "35eeae842217"
+    },
+    {
+      "code": "5236701",
+      "name": "CeremonyOfScent Candles",
+      "cases": 4,
+      "bbox": {
+        "x": 590.0,
+        "y": 1004.0,
+        "w": 128.0,
+        "h": 64.0
+      },
+      "image_bbox": {
+        "x": 578.5,
+        "y": 525.75,
+        "w": 180.0,
+        "h": 542.25
+      },
+      "bay": 1,
+      "shelf": 2,
+      "position_left": 4,
+      "position_right": 1,
+      "confidence": 0.9885770122210185,
+      "tags": [],
+      "manually_edited": false,
+      "id": "364843235386"
+    },
+    {
+      "code": "210846",
+      "name": "KitchenCleaner",
+      "cases": 4,
+      "bbox": {
+        "x": 1714.0,
+        "y": 1203.0,
+        "w": 107.0,
+        "h": 50.0
+      },
+      "image_bbox": {
+        "x": 1707.0,
+        "y": 590.0,
+        "w": 127.0,
+        "h": 663.0
+      },
+      "bay": 3,
+      "shelf": 2,
+      "position_left": 3,
+      "position_right": 3,
+      "confidence": 0.9910676564489093,
+      "tags": [],
+      "manually_edited": false,
+      "id": "f525f2e10753"
+    },
+    {
+      "code": "211746",
+      "name": "Antibacterial Multi-Action Cleaner",
+      "cases": 8,
+      "bbox": {
+        "x": 1582.0,
+        "y": 1185.0,
+        "w": 118.0,
+        "h": 85.0
+      },
+      "image_bbox": {
+        "x": 1574.0,
+        "y": 590.0,
+        "w": 133.0,
+        "h": 680.0
+      },
+      "bay": 3,
+      "shelf": 2,
+      "position_left": 2,
+      "position_right": 4,
+      "confidence": 0.9699156483014425,
+      "tags": [],
+      "manually_edited": false,
+      "id": "5894e9e6392e"
+    },
+    {
+      "code": "211642",
+      "name": "CleaningSpray Bathroom/Shower",
+      "cases": 4,
+      "bbox": {
+        "x": 1847.0,
+        "y": 1196.0,
+        "w": 120.0,
+        "h": 65.0
+      },
+      "image_bbox": {
+        "x": 1834.0,
+        "y": 590.0,
+        "w": 139.5,
+        "h": 671.0
+      },
+      "bay": 3,
+      "shelf": 2,
+      "position_left": 4,
+      "position_right": 2,
+      "confidence": 0.9952334257272574,
+      "tags": [],
+      "manually_edited": false,
+      "id": "db39a2d81de2"
+    },
+    {
+      "code": "7012188",
+      "name": "AllPurposeSpray WithBleach",
+      "cases": 4,
+      "bbox": {
+        "x": 1449.0,
+        "y": 1197.0,
+        "w": 117.0,
+        "h": 64.0
+      },
+      "image_bbox": {
+        "x": 1436.5,
+        "y": 590.0,
+        "w": 137.5,
+        "h": 671.0
+      },
+      "bay": 3,
+      "shelf": 2,
+      "position_left": 1,
+      "position_right": 5,
+      "confidence": 0.9908251643180848,
+      "tags": [],
+      "manually_edited": false,
+      "id": "fea690c4cfe8"
+    },
+    {
+      "code": "224424",
+      "name": "Cleaner Limescale/Degrease",
+      "cases": 4,
+      "bbox": {
+        "x": 1980.0,
+        "y": 1196.0,
+        "w": 136.0,
+        "h": 66.0
+      },
+      "image_bbox": {
+        "x": 1973.5,
+        "y": 590.0,
+        "w": 143.5,
+        "h": 672.0
+      },
+      "bay": 3,
+      "shelf": 2,
+      "position_left": 5,
+      "position_right": 1,
+      "confidence": 0.9796473724501473,
+      "tags": [],
+      "manually_edited": false,
+      "id": "09c0721bf88b"
+    },
+    {
+      "code": "1003764",
+      "name": "WhiteTealights",
+      "cases": 3,
+      "bbox": {
+        "x": 561.0,
+        "y": 1523.0,
+        "w": 156.0,
+        "h": 51.0
+      },
+      "image_bbox": {
+        "x": 528.5,
+        "y": 1040.25,
+        "w": 230.0,
+        "h": 533.75
+      },
+      "bay": 1,
+      "shelf": 3,
+      "position_left": 3,
+      "position_right": 1,
+      "confidence": 0.9852326342037746,
+      "tags": [],
+      "manually_edited": false,
+      "id": "4c400b22854e"
+    },
+    {
+      "code": "230167",
+      "name": "ThickBleach Original/Citrus",
+      "cases": 2,
+      "bbox": {
+        "x": 1019.0,
+        "y": 1515.0,
+        "w": 155.0,
+        "h": 68.0
+      },
+      "image_bbox": {
+        "x": 758.5,
+        "y": 698.0,
+        "w": 678.0,
+        "h": 885.0
+      },
+      "bay": 2,
+      "shelf": 2,
+      "position_left": 1,
+      "position_right": 1,
+      "confidence": 0.980978528658549,
+      "tags": [],
+      "manually_edited": false,
+      "id": "e844e9d07112"
+    },
+    {
+      "code": "5723287",
+      "name": "Scented GlassCandle SK",
+      "cases": 4,
+      "bbox": {
+        "x": 339.0,
+        "y": 1515.0,
+        "w": 157.0,
+        "h": 68.0
+      },
+      "image_bbox": {
+        "x": 306.5,
+        "y": 1040.25,
+        "w": 222.0,
+        "h": 542.75
+      },
+      "bay": 1,
+      "shelf": 3,
+      "position_left": 2,
+      "position_right": 2,
+      "confidence": 0.9745555300461618,
+      "tags": [],
+      "manually_edited": false,
+      "id": "34a111ea23a1"
+    },
+    {
+      "code": "7126601",
+      "name": "EverydayJarCandle SK4",
+      "cases": 2,
+      "bbox": {
+        "x": 118.0,
+        "y": 1515.0,
+        "w": 156.0,
+        "h": 68.0
+      },
+      "image_bbox": {
+        "x": 78.0,
+        "y": 1040.25,
+        "w": 228.5,
+        "h": 542.75
+      },
+      "bay": 1,
+      "shelf": 3,
+      "position_left": 1,
+      "position_right": 3,
+      "confidence": 0.9879868456295559,
+      "tags": [],
+      "manually_edited": false,
+      "id": "0b3f82433e5f"
+    },
+    {
+      "code": "227481",
+      "name": "ToiletRimBlocks",
+      "cases": 2,
+      "bbox": {
+        "x": 1614.0,
+        "y": 1845.0,
+        "w": 115.0,
+        "h": 50.0
+      },
+      "image_bbox": {
+        "x": 1591.0,
+        "y": 1233.0,
+        "w": 164.0,
+        "h": 662.0
+      },
+      "bay": 3,
+      "shelf": 3,
+      "position_left": 2,
+      "position_right": 3,
+      "confidence": 0.9939629094941276,
+      "tags": [],
+      "manually_edited": false,
+      "id": "47084cfc6cf2"
+    },
+    {
+      "code": "250592",
+      "name": "ToiletGel with applicator",
+      "cases": 4,
+      "bbox": {
+        "x": 1947.0,
+        "y": 1837.0,
+        "w": 94.0,
+        "h": 66.0
+      },
+      "image_bbox": {
+        "x": 1927.0,
+        "y": 1233.0,
+        "w": 190.0,
+        "h": 670.0
+      },
+      "bay": 3,
+      "shelf": 3,
+      "position_left": 4,
+      "position_right": 1,
+      "confidence": 0.9632182802472796,
+      "tags": [],
+      "manually_edited": false,
+      "id": "70bb44d61237"
+    },
+    {
+      "code": "7012611",
+      "name": "ToiletBlocksWK9",
+      "cases": 8,
+      "bbox": {
+        "x": 1449.0,
+        "y": 1846.0,
+        "w": 119.0,
+        "h": 49.0
+      },
+      "image_bbox": {
+        "x": 1436.5,
+        "y": 1233.0,
+        "w": 154.5,
+        "h": 662.0
+      },
+      "bay": 3,
+      "shelf": 3,
+      "position_left": 1,
+      "position_right": 4,
+      "confidence": 0.9892102599143981,
+      "tags": [],
+      "manually_edited": false,
+      "id": "9cda930ddca3"
+    },
+    {
+      "code": "200800",
+      "name": "Liquid ToiletBlocks",
+      "cases": 2,
+      "bbox": {
+        "x": 1781.0,
+        "y": 1846.0,
+        "w": 126.0,
+        "h": 49.0
+      },
+      "image_bbox": {
+        "x": 1755.0,
+        "y": 1233.0,
+        "w": 172.0,
+        "h": 662.0
+      },
+      "bay": 3,
+      "shelf": 3,
+      "position_left": 3,
+      "position_right": 2,
+      "confidence": 0.983046010920876,
+      "tags": [],
+      "manually_edited": false,
+      "id": "fbcbfa5e79e7"
+    },
+    {
+      "code": "233114",
+      "name": "PluginAirFreshener SK1",
+      "cases": 2,
+      "bbox": {
+        "x": 256.0,
+        "y": 2031.0,
+        "w": 140.0,
+        "h": 65.0
+      },
+      "image_bbox": {
+        "x": 240.5,
+        "y": 1553.75,
+        "w": 169.5,
+        "h": 542.25
+      },
+      "bay": 1,
+      "shelf": 4,
+      "position_left": 2,
+      "position_right": 3,
+      "confidence": 0.9857980575826433,
+      "tags": [],
+      "manually_edited": false,
+      "id": "34c067de6d63"
+    },
+    {
+      "code": "65810",
+      "name": "Air Freshener 150ml",
+      "cases": 2,
+      "bbox": {
+        "x": 92.0,
+        "y": 2041.0,
+        "w": 133.0,
+        "h": 47.0
+      },
+      "image_bbox": {
+        "x": 78.0,
+        "y": 1553.75,
+        "w": 162.5,
+        "h": 534.25
+      },
+      "bay": 1,
+      "shelf": 4,
+      "position_left": 1,
+      "position_right": 4,
+      "confidence": 0.9913025157792228,
+      "tags": [],
+      "manually_edited": false,
+      "id": "1f8ba308451c"
+    },
+    {
+      "code": "7001068",
+      "name": "Plug in Refill",
+      "cases": 4,
+      "bbox": {
+        "x": 424.0,
+        "y": 2041.0,
+        "w": 85.0,
+        "h": 47.0
+      },
+      "image_bbox": {
+        "x": 410.0,
+        "y": 1553.75,
+        "w": 140.0,
+        "h": 534.25
+      },
+      "bay": 1,
+      "shelf": 4,
+      "position_left": 3,
+      "position_right": 2,
+      "confidence": 0.9766076122011457,
+      "tags": [],
+      "manually_edited": false,
+      "id": "8f213fdab3d9"
+    },
+    {
+      "code": "1005171",
+      "name": "Dinner Candles",
+      "cases": 2,
+      "bbox": {
+        "x": 591.0,
+        "y": 2041.0,
+        "w": 103.0,
+        "h": 47.0
+      },
+      "image_bbox": {
+        "x": 550.0,
+        "y": 1553.75,
+        "w": 208.5,
+        "h": 534.25
+      },
+      "bay": 1,
+      "shelf": 4,
+      "position_left": 4,
+      "position_right": 1,
+      "confidence": 0.9678020008972713,
+      "tags": [],
+      "manually_edited": false,
+      "id": "c10bf2167224"
+    },
+    {
+      "code": "209302",
+      "name": "ThickBleach Original/Citrus",
+      "cases": 1,
+      "bbox": {
+        "x": 1019.0,
+        "y": 2372.0,
+        "w": 155.0,
+        "h": 68.0
+      },
+      "image_bbox": {
+        "x": 758.5,
+        "y": 1554.75,
+        "w": 678.0,
+        "h": 1271.25
+      },
+      "bay": 2,
+      "shelf": 3,
+      "position_left": 1,
+      "position_right": 1,
+      "confidence": 0.9792078375816345,
+      "tags": [],
+      "manually_edited": false,
+      "id": "3d4d73c14e7e"
+    },
+    {
+      "code": "241709",
+      "name": "ToiletCleaner",
+      "cases": 4,
+      "bbox": {
+        "x": 1847.0,
+        "y": 2489.0,
+        "w": 93.0,
+        "h": 48.0
+      },
+      "image_bbox": {
+        "x": 1831.5,
+        "y": 1876.0,
+        "w": 129.0,
+        "h": 950.0
+      },
+      "bay": 3,
+      "shelf": 4,
+      "position_left": 4,
+      "position_right": 2,
+      "confidence": 0.9940621171678815,
+      "tags": [],
+      "manually_edited": false,
+      "id": "e7d9ac543dbd"
+    },
+    {
+      "code": "241390",
+      "name": "CreamCleaner",
+      "cases": 4,
+      "bbox": {
+        "x": 1715.0,
+        "y": 2489.0,
+        "w": 101.0,
+        "h": 49.0
+      },
+      "image_bbox": {
+        "x": 1707.5,
+        "y": 1876.0,
+        "w": 124.0,
+        "h": 950.0
+      },
+      "bay": 3,
+      "shelf": 4,
+      "position_left": 3,
+      "position_right": 3,
+      "confidence": 0.9944561570882797,
+      "tags": [],
+      "manually_edited": false,
+      "id": "23991cdd9946"
+    },
+    {
+      "code": "250153",
+      "name": "Sink&Drain Cleaner",
+      "cases": 6,
+      "bbox": {
+        "x": 1582.0,
+        "y": 2479.0,
+        "w": 118.0,
+        "h": 68.0
+      },
+      "image_bbox": {
+        "x": 1574.0,
+        "y": 1876.0,
+        "w": 133.5,
+        "h": 950.0
+      },
+      "bay": 3,
+      "shelf": 4,
+      "position_left": 2,
+      "position_right": 4,
+      "confidence": 0.9942175269126892,
+      "tags": [],
+      "manually_edited": false,
+      "id": "9d0e077244ef"
+    },
+    {
+      "code": "209041",
+      "name": "AllPurpose Cleaner",
+      "cases": 2,
+      "bbox": {
+        "x": 1981.0,
+        "y": 2479.0,
+        "w": 119.0,
+        "h": 68.0
+      },
+      "image_bbox": {
+        "x": 1960.5,
+        "y": 1876.0,
+        "w": 156.5,
+        "h": 950.0
+      },
+      "bay": 3,
+      "shelf": 4,
+      "position_left": 5,
+      "position_right": 1,
+      "confidence": 0.9619091272354126,
+      "tags": [],
+      "manually_edited": false,
+      "id": "b3ecf7f0bf21"
+    },
+    {
+      "code": "234787",
+      "name": "DomestosBleach",
+      "cases": 4,
+      "bbox": {
+        "x": 1449.0,
+        "y": 2490.0,
+        "w": 117.0,
+        "h": 49.0
+      },
+      "image_bbox": {
+        "x": 1436.5,
+        "y": 1876.0,
+        "w": 137.5,
+        "h": 950.0
+      },
+      "bay": 3,
+      "shelf": 4,
+      "position_left": 1,
+      "position_right": 5,
+      "confidence": 0.9955053755215236,
+      "tags": [],
+      "manually_edited": false,
+      "id": "a166c679ac0a"
+    },
+    {
+      "code": "1060",
+      "name": "Febreze Bathroom Spring Awakening",
+      "cases": 3,
+      "bbox": {
+        "x": 519.0,
+        "y": 2542.0,
+        "w": 63.0,
+        "h": 70.0
+      },
+      "image_bbox": {
+        "x": 498.0,
+        "y": 2067.75,
+        "w": 119.0,
+        "h": 758.25
+      },
+      "bay": 1,
+      "shelf": 5,
+      "position_left": 4,
+      "position_right": 2,
+      "confidence": 0.9150033096472422,
+      "tags": [],
+      "manually_edited": false,
+      "id": "843b1b97dadc"
+    },
+    {
+      "code": "7137122",
+      "name": "Febreze Air Freshener Spray Cotton",
+      "cases": 3,
+      "bbox": {
+        "x": 652.0,
+        "y": 2547.0,
+        "w": 63.0,
+        "h": 59.0
+      },
+      "image_bbox": {
+        "x": 617.0,
+        "y": 2067.75,
+        "w": 141.5,
+        "h": 758.25
+      },
+      "bay": 1,
+      "shelf": 5,
+      "position_left": 5,
+      "position_right": 1,
+      "confidence": 0.9910429765780767,
+      "tags": [],
+      "manually_edited": false,
+      "id": "6137449514c1"
+    },
+    {
+      "code": "213137",
+      "name": "GelAirFreshener SK6",
+      "cases": 6,
+      "bbox": {
+        "x": 92.0,
+        "y": 2546.0,
+        "w": 116.0,
+        "h": 65.0
+      },
+      "image_bbox": {
+        "x": 78.0,
+        "y": 2067.75,
+        "w": 138.5,
+        "h": 758.25
+      },
+      "bay": 1,
+      "shelf": 5,
+      "position_left": 1,
+      "position_right": 5,
+      "confidence": 0.9936734693390983,
+      "tags": [],
+      "manually_edited": false,
+      "id": "c4bc78750389"
+    },
+    {
+      "code": "217968",
+      "name": "AirFreshener SK6",
+      "cases": 6,
+      "bbox": {
+        "x": 225.0,
+        "y": 2546.0,
+        "w": 91.0,
+        "h": 65.0
+      },
+      "image_bbox": {
+        "x": 216.5,
+        "y": 2067.75,
+        "w": 120.5,
+        "h": 758.25
+      },
+      "bay": 1,
+      "shelf": 5,
+      "position_left": 2,
+      "position_right": 4,
+      "confidence": 0.9914812956537519,
+      "tags": [],
+      "manually_edited": false,
+      "id": "5fa329a2517a"
+    },
+    {
+      "code": "240392",
+      "name": "AirDiffuser Cotton/Lavender",
+      "cases": 4,
+      "bbox": {
+        "x": 358.0,
+        "y": 2542.0,
+        "w": 119.0,
+        "h": 69.0
+      },
+      "image_bbox": {
+        "x": 337.0,
+        "y": 2067.75,
+        "w": 161.0,
+        "h": 758.25
+      },
+      "bay": 1,
+      "shelf": 5,
+      "position_left": 3,
+      "position_right": 3,
+      "confidence": 0.9567740017717535,
+      "tags": [],
+      "manually_edited": false,
+      "id": "4138fccb6cb6"
+    }
+  ]
+}

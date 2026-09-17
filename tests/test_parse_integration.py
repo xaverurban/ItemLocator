@@ -132,3 +132,44 @@ def test_repeated_codes_keep_every_location(pages):
 
 def test_markers_are_stored_as_tags(pages):
     assert "NTA" in pages[1].tags or "NTA" in pages[2].tags
+
+
+def test_search_over_parsed_pages(pages):
+    """The acceptance searches, run against what the parser actually produced."""
+    from shelffinder.core.locate import locate_hit
+    from shelffinder.core.models import Layout, group_pages_into_layouts
+    from shelffinder.core.search import MatchKind, ProductIndex
+
+    layouts = group_pages_into_layouts(list(pages.values()))
+    assert len(layouts) == 1
+    index = ProductIndex(layouts)
+
+    result = index.search("038")
+    assert result.single is not None, [hit.code for hit in result.hits]
+    card = locate_hit(result.single)
+    assert card.code == "7008038"
+    assert card.page.number == 2
+    assert card.position_left == 1
+    assert card.shelf.notch == 12
+    assert result.single.kind is MatchKind.SUFFIX
+
+    card = locate_hit(index.search("5481").single)
+    assert card.position_right == 1 and card.shelf.notch == 33
+
+    card = locate_hit(index.search("167").hits[0])
+    assert card.code == "230167" and card.page.number == 1
+
+    card = locate_hit(index.search("1060").single)
+    assert card.code == "1060" and card.page.number == 1
+    assert card.shelf.notch == 3
+    assert card.neighbour_left is not None       # sits between two other products
+
+
+def test_search_suggests_near_misses_from_parsed_data(pages):
+    from shelffinder.core.models import group_pages_into_layouts
+    from shelffinder.core.search import ProductIndex
+
+    index = ProductIndex(group_pages_into_layouts(list(pages.values())))
+    result = index.search("7008039")             # last digit wrong
+    assert result.is_empty
+    assert "7008038" in [hit.product.code for hit in result.suggestions]
