@@ -6,7 +6,8 @@
 
 import os
 
-from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
+from PyInstaller.utils.hooks import (collect_data_files, collect_dynamic_libs,
+                                     collect_submodules)
 
 ROOT = os.path.abspath(os.path.join(SPECPATH, ".."))
 
@@ -24,6 +25,10 @@ hiddenimports = [
     "pypdfium2",
     "shelffinder.selftest",
 ]
+# PyInstaller's bundled hooks trail new NumPy releases, and a missing private
+# submodule only shows up at run time ("No module named numpy._core._exceptions"),
+# so take the whole package.
+hiddenimports += collect_submodules("numpy")
 
 # Qt modules this app never touches - leaving them out keeps the folder sane.
 excludes = [
@@ -33,6 +38,12 @@ excludes = [
     "PySide6.QtBluetooth", "PySide6.QtNfc", "PySide6.QtPositioning", "PySide6.QtSerialPort",
     "PySide6.QtSql", "PySide6.QtTest", "PySide6.QtWebSockets", "PySide6.QtPdf",
     "matplotlib", "scipy", "pandas", "tkinter", "pytest", "IPython", "notebook",
+    # onnxruntime ships benchmark and training tooling we never call; it drags in
+    # pkg_resources, whose PyInstaller runtime hook then fails on a missing
+    # backports module.
+    "onnxruntime.transformers", "onnxruntime.training", "onnxruntime.tools",
+    "pkg_resources", "setuptools", "jaraco", "backports",
+    "numpy.distutils", "numpy.f2py", "numpy.testing", "numpy._pyinstaller",
 ]
 
 analysis = Analysis(
