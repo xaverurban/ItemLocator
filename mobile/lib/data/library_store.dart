@@ -8,6 +8,7 @@ import 'package:archive/archive.dart';
 import 'package:path/path.dart' as p;
 
 import 'models.dart';
+import 'photo_parser.dart';
 import 'search.dart';
 
 const int packSchemaVersion = 1;
@@ -132,6 +133,45 @@ class LibraryStore {
     layouts.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
     await save();
     return PackImportResult(imported.length, pages, products);
+  }
+
+  /// Store pages read from photos on this phone, grouped into layouts by header.
+  Future<PackImportResult> addPhotoPages(List<PhotoParseResult> results) async {
+    await imagesDirectory.create(recursive: true);
+    var pages = 0;
+    var products = 0;
+    final touched = <String>{};
+
+    for (final result in results) {
+      final title = '\${result.layoutName} \${result.layoutSize}'.trim();
+      final key = _squash(title);
+      pages += 1;
+      products += result.page.products.length;
+
+      Layout? existing;
+      for (final layout in layouts) {
+        if (_squash(layout.title) == key && key.isNotEmpty) existing = layout;
+      }
+      if (existing == null) {
+        existing = Layout(
+          id: 'phone-\${DateTime.now().microsecondsSinceEpoch}-\${layouts.length}',
+          name: result.layoutName.isEmpty ? 'Photographed sheet' : result.layoutName,
+          size: result.layoutSize,
+          importedAt: DateTime.now().toUtc().toIso8601String(),
+          pages: [],
+        );
+        layouts.add(existing);
+      }
+      // A new photo of a page replaces the old reading of that page.
+      existing.pages.removeWhere((page) => page.number == result.page.number);
+      existing.pages.add(result.page);
+      existing.pages.sort((a, b) => a.number.compareTo(b.number));
+      touched.add(existing.id);
+    }
+
+    layouts.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+    await save();
+    return PackImportResult(touched.length, pages, products);
   }
 
   Future<void> deleteLayout(String layoutId) async {

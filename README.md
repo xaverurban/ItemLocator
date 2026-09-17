@@ -71,8 +71,17 @@ newest green run → Artifacts → `ShelfFinder-android`**. Copy `ShelfFinder.ap
 to the phone and open it; Android will ask you to allow installing from that
 source.
 
-Then, on the desktop, **Packs → Export a layout pack**, copy the `.zip` to the
-phone (cable, Drive, email - anything), and in the app tap **Layouts → Import**.
+Sheets get onto the phone two ways - **Layouts → Add sheets**:
+
+* **A layout pack from the desktop.** Export one with **Packs → Export a layout
+  pack**, copy the `.zip` across, and import it. This is the accurate route: the
+  desktop has flattened the page and read it carefully, and importing takes a
+  second.
+* **Photograph a sheet, or pick photos from the gallery.** The phone reads them
+  itself, offline, with on-device OCR. It has no OpenCV, so it cannot flatten a
+  page or correct perspective: lay the sheet flat, fill the frame and keep the
+  camera square on. Products read this way are tagged `phone-import` and carry a
+  lower confidence, and the app says plainly that it is rougher than the desktop.
 
 * Search is the same as the desktop: three digits or more, ends-with before
   contains, near misses when nothing matches.
@@ -87,9 +96,17 @@ Working on it:
 cd mobile
 flutter pub get
 flutter analyze
-flutter test          # 33 tests, including one that reads a real exported pack
+flutter test          # 50 tests, including one that reads a real exported pack
 flutter build apk --release
 ```
+
+Reading a photo on the phone follows the same shape as the desktop, with what
+is possible in pure Dart: on-device OCR for the text, a scan for the printed
+bay dividers and shelf rules (a bay divider is a column of the image that is far
+darker than its neighbours over most of the page), the same notch/code/cases
+rules, and the same "a bay with no notch line of its own borrows the one to its
+left". Orientation is settled the same way too - by the shape of the text boxes,
+then by which way the notch numbers count.
 
 The pack format is written down in [docs/layout-pack.md](docs/layout-pack.md) -
 a zip holding one JSON document and the page images, readable with nothing but a

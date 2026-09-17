@@ -35,7 +35,7 @@ class LayoutsScreen extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: onImportRequested,
                   icon: const Icon(Icons.add, size: 20),
-                  label: const Text('Import'),
+                  label: const Text('Add sheets'),
                 ),
               ],
             ),
@@ -209,8 +209,9 @@ class _NoLayouts extends StatelessWidget {
                   style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700)),
               SizedBox(height: 8),
               Text(
-                'On the desktop app, open a layout and export a pack. Copy the '
-                '.zip to the phone, then press Import.',
+                'Photograph a sheet and it will be read here, or export a pack '
+                'from the desktop app and import the .zip - that way is more '
+                'accurate and much quicker.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: palette.textDim, fontSize: 14, height: 1.45),

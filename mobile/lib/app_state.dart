@@ -10,6 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/library_store.dart';
 import 'data/models.dart';
+import 'data/photo_import.dart';
+import 'data/photo_parser.dart';
 import 'data/search.dart';
 import 'theme.dart' as palette;
 
@@ -73,6 +75,44 @@ class AppState extends ChangeNotifier {
     final result = await store.importPack(file);
     notifyListeners();
     return result;
+  }
+
+  /// Read photographed sheets on the phone. Slower and less sure than the
+  /// desktop, which flattens the page first, so what it reads is flagged.
+  Future<(PackImportResult, List<String>)> importPhotos(
+    List<File> photos, {
+    void Function(PhotoImportProgress progress)? progress,
+  }) async {
+    final importer = PhotoImporter(imagesDirectory: store.imagesDirectory);
+    final parsed = <PhotoParseResult>[];
+    final warnings = <String>[];
+    try {
+      for (var index = 0; index < photos.length; index++) {
+        final pageId = 'photo-${DateTime.now().microsecondsSinceEpoch}-$index';
+        final result = await importer.readSheet(
+          photos[index],
+          pageId,
+          progress: progress,
+          index: index,
+          total: photos.length,
+        );
+        if (result == null) {
+          warnings.add('${photos[index].path.split('/').last} could not be opened.');
+          continue;
+        }
+        parsed.add(result);
+        warnings.addAll(result.warnings);
+      }
+    } finally {
+      await importer.dispose();
+    }
+
+    if (parsed.isEmpty) {
+      return (const PackImportResult(0, 0, 0), warnings);
+    }
+    final stored = await store.addPhotoPages(parsed);
+    notifyListeners();
+    return (stored, warnings);
   }
 
   Future<void> deleteLayout(String layoutId) async {

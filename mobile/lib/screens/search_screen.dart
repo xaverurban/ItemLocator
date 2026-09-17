@@ -149,12 +149,12 @@ class _SearchScreenState extends State<SearchScreen> {
       return _Empty(
         icon: Icons.inbox_outlined,
         title: 'No layouts yet',
-        message: 'Import a layout pack exported from the desktop app, then '
-            'search any product code.',
+        message: 'Photograph a sheet, or import a pack from the desktop app, '
+            'then search any product code.',
         action: FilledButton.icon(
           onPressed: widget.onImportRequested,
           icon: const Icon(Icons.add),
-          label: const Text('Import a layout pack'),
+          label: const Text('Add layout sheets'),
         ),
       );
     }

@@ -1,13 +1,10 @@
 /// ShelfFinder for Android: find where a product goes, on the shop floor.
 library;
 
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import 'app_state.dart';
-import 'data/library_store.dart';
+import 'screens/import_sheet.dart';
 import 'screens/layouts_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/settings_screen.dart';
@@ -70,36 +67,16 @@ class _HomeShellState extends State<HomeShell> {
   int _tab = 0;
   bool _importing = false;
 
-  Future<void> _importPack() async {
+  Future<void> _import() async {
     if (_importing) return;
-    setState(() => _importing = true);
-    final messenger = ScaffoldMessenger.of(context);
     final state = AppScope.of(context);
+    final choice = await askHowToImport(context);
+    if (choice == null || !mounted) return;
+
+    setState(() => _importing = true);
     try {
-      final chosen = await FilePicker.platform.pickFiles(
-        type: FileType.any,
-        allowMultiple: false,
-      );
-      final path = chosen?.files.single.path;
-      if (path == null) return;
-      if (!path.toLowerCase().endsWith('.zip')) {
-        messenger.showSnackBar(const SnackBar(
-          content: Text('Choose the .zip layout pack exported from the '
-              'desktop app.'),
-        ));
-        return;
-      }
-      final result = await state.importPack(File(path));
-      messenger.showSnackBar(
-        SnackBar(content: Text('Imported ${result.describe()}')),
-      );
-      if (mounted) setState(() => _tab = 0);
-    } on PackFormatException catch (error) {
-      messenger.showSnackBar(SnackBar(content: Text(error.message)));
-    } catch (error) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('That pack could not be read: $error')),
-      );
+      await ImportRunner(context, state).run(choice);
+      if (mounted && state.layouts.isNotEmpty) setState(() => _tab = 0);
     } finally {
       if (mounted) setState(() => _importing = false);
     }
@@ -108,8 +85,8 @@ class _HomeShellState extends State<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final screens = [
-      SearchScreen(onImportRequested: _importPack),
-      LayoutsScreen(onImportRequested: _importPack),
+      SearchScreen(onImportRequested: _import),
+      LayoutsScreen(onImportRequested: _import),
       const SettingsScreen(),
     ];
 

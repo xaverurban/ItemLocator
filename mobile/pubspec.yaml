@@ -11,6 +11,9 @@ dependencies:
     sdk: flutter
   archive: ^3.6.1          # reads layout packs, pure Dart
   file_picker: ^8.1.6      # choose a pack to import
+  google_mlkit_text_recognition: ^0.14.0   # on-device OCR, works offline
+  image: ^4.3.0            # rotating a photo before reading it
+  image_picker: ^1.1.2     # camera and gallery
   path: ^1.9.0
   path_provider: ^2.1.5
   shared_preferences: ^2.3.3

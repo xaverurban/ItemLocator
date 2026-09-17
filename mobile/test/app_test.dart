@@ -122,6 +122,18 @@ void main() {
     expect(state.highlight, const Color(0xFF29E0E3));
   });
 
+  testWidgets('the add button offers photos as well as a pack', (tester) async {
+    await open(tester);
+    await tester.tap(find.text('Layouts'));
+    await settle(tester);
+    await tester.tap(find.text('Add sheets'));
+    await settle(tester);
+
+    expect(find.text('Take a photo of a sheet'), findsOneWidget);
+    expect(find.text('Choose photos'), findsOneWidget);
+    expect(find.text('Import a layout pack'), findsOneWidget);
+  });
+
   testWidgets('with nothing imported the app asks for a pack', (tester) async {
     late Directory empty;
     late AppState emptyState;
@@ -138,7 +150,7 @@ void main() {
     await settle(tester);
 
     expect(find.text('No layouts yet'), findsOneWidget);
-    expect(find.text('Import a layout pack'), findsOneWidget);
+    expect(find.text('Add layout sheets'), findsOneWidget);
     await tester.runAsync(() => empty.delete(recursive: true));
   });
 }
