@@ -355,39 +355,60 @@ def rotation_matrix(degrees: int, width: int, height: int) -> np.ndarray:
 
 
 def orientation_score(lines) -> float:
-    """How much does this read like an upright planogram sheet?"""
+    """How much does this read like an upright planogram sheet?
+
+    Text that is upside down or on its side still comes back from OCR, but as
+    fragments: the words a planogram always carries ("Notch", "Depth", "Cases")
+    only appear when the page is the right way up, so they carry most of the
+    weight.
+    """
+
+    from . import textparse
+
     score = 0.0
     for line in lines:
         text = line.text.lower()
         confidence = float(line.confidence)
-        if any(word in text for word in _ORIENTATION_KEYWORDS):
-            score += 6.0 * confidence
-        digits = sum(char.isdigit() for char in text)
-        if digits >= 4:
-            score += 1.5 * confidence
-        if line.bbox.w > line.bbox.h:        # upright text lines are wide
-            score += 0.35 * confidence
+        if textparse.parse_notch(line.text) is not None:
+            score += 14.0 * confidence          # the most telling line on the sheet
+        elif textparse.parse_cases(line.text) is not None:
+            score += 5.0 * confidence
+        elif any(word in text for word in _ORIENTATION_KEYWORDS):
+            score += 4.0 * confidence
+        if textparse.code_candidate(line.text) is not None:
+            score += 2.0 * confidence
+        elif sum(char.isdigit() for char in text) >= 4:
+            score += 0.8 * confidence
+        if line.bbox.w > line.bbox.h:           # upright text lines are wide
+            score += 0.3 * confidence
         else:
-            score -= 0.35 * confidence
+            score -= 0.3 * confidence
     return score
 
 
-def detect_rotation(image: np.ndarray, ocr_engine, probe_long_side: int = 1500) -> int:
-    """Return the clockwise rotation (0/90/180/270) that makes the page upright."""
+def detect_rotation(image: np.ndarray, ocr_engine, probe_long_side: int = 1400,
+                    return_scores: bool = False):
+    """Return the clockwise rotation (0/90/180/270) that makes the page upright.
+
+    All four are tried. The page's own shape is not a reliable shortcut: a sheet
+    photographed on its side can still warp to a portrait image, and skipping 90
+    and 270 in that case leaves the whole page sideways.
+    """
 
     height, width = image.shape[:2]
-    candidates = (0, 180) if height >= width else (90, 270)
     scale = min(1.0, probe_long_side / float(max(width, height)))
     probe = cv2.resize(image, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
 
-    best_angle, best_score = candidates[0], float("-inf")
-    for angle in candidates:
+    scores: dict[int, float] = {}
+    for angle in (0, 90, 180, 270):
         lines = ocr_engine.read(rotate_image(probe, angle))
-        score = orientation_score(lines)
-        log.debug("orientation %3d deg -> score %.1f (%d lines)", angle, score, len(lines))
-        if score > best_score:
-            best_angle, best_score = angle, score
-    return best_angle
+        scores[angle] = orientation_score(lines)
+        log.debug("orientation %3d deg -> score %.1f (%d lines)", angle, scores[angle],
+                  len(lines))
+    best_angle = max(scores, key=lambda angle: scores[angle])
+    log.info("rotation %d deg (scores %s)", best_angle,
+             {angle: round(value, 1) for angle, value in scores.items()})
+    return (best_angle, scores) if return_scores else best_angle
 
 
 def blur_score(image: np.ndarray) -> float:
@@ -409,7 +430,14 @@ def straighten(image: np.ndarray, ocr_engine=None, blur_threshold: float = 60.0)
 
     rotation = 0
     if ocr_engine is not None:
-        rotation = detect_rotation(warped, ocr_engine)
+        rotation, scores = detect_rotation(warped, ocr_engine, return_scores=True)
+        ranked = sorted(scores.values(), reverse=True)
+        if ranked[0] <= 0:
+            warnings.append("The page could not be read in any orientation - it may be "
+                            "blurry, cropped or upside down. Check it on the review screen.")
+        elif len(ranked) > 1 and ranked[1] > ranked[0] * 0.8:
+            warnings.append("Which way up this page goes was a close call - "
+                            "check the page looks right.")
     elif warped.shape[1] > warped.shape[0]:
         rotation = 90
     if rotation:

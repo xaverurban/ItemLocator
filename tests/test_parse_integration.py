@@ -173,3 +173,30 @@ def test_search_suggests_near_misses_from_parsed_data(pages):
     result = index.search("7008039")             # last digit wrong
     assert result.is_empty
     assert "7008038" in [hit.product.code for hit in result.suggestions]
+
+
+@pytest.mark.parametrize("turned", [0, 90, 180, 270])
+def test_a_sideways_page_is_turned_upright(samples, engine, turned):
+    """A sheet photographed on its side must come back upright.
+
+    The page's own shape is not a safe shortcut here: a sideways sheet can still
+    warp to a portrait image, which used to leave the whole page rotated and the
+    parse reading the sheet against the grain.
+    """
+    from shelffinder.core.imaging import detect_rotation, rotate_image
+
+    page = cv2.imread(os.path.join(samples, "page_1_clean.png"))
+    detected = detect_rotation(rotate_image(page, turned), engine)
+    assert detected == (360 - turned) % 360
+
+
+def test_a_sideways_photo_still_parses(samples, engine):
+    from shelffinder.core.imaging import rotate_image
+    from shelffinder.core.parser import parse_image
+
+    photo = cv2.imread(os.path.join(samples, "page_2_photo.jpg"))
+    page, flat = parse_image(rotate_image(photo, 90), engine, source_file="sideways.jpg")
+    codes = {product.code for product in page.products}
+    assert "5481" in codes, sorted(codes)
+    assert len(page.bays) == 3
+    assert flat.image.shape[0] > flat.image.shape[1]        # portrait, the right way up

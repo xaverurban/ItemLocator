@@ -27,6 +27,16 @@ def _box_points(box: BBox) -> list[tuple[float, float]]:
     return [(box.x, box.y), (box.x2, box.y), (box.x2, box.y2), (box.x, box.y2)]
 
 
+def _padded(box: Optional[BBox], fraction: float = 0.10, least: float = 6.0) -> Optional[BBox]:
+    """A little breathing room around a label, so the outline does not clip the text."""
+    if box is None:
+        return None
+    margin_x = max(box.w * fraction, least)
+    margin_y = max(box.h * fraction, least)
+    return BBox(box.x - margin_x, box.y - margin_y,
+                box.w + 2 * margin_x, box.h + 2 * margin_y)
+
+
 class PageViewer(QGraphicsView):
     """Shows one page, with an optional product highlighted."""
 
@@ -191,16 +201,17 @@ class PageViewer(QGraphicsView):
             return
 
         self._product = product
-        target_box = product.image_bbox or product.bbox
+        # Highlight the product itself - its label - not the whole shelf run.
+        # The shelf and bay get their own faint outlines below for context.
+        target_box = _padded(product.bbox or product.image_bbox)
         points = self._map(target_box)
-        label_points = self._map(product.bbox) or points
         if points is None:
             self.clear_highlight()
             return
 
         polygon = _polygon(points)
         if self._highlight_item is not None:
-            self._highlight_item.setPolygon(_polygon(label_points))
+            self._highlight_item.setPolygon(polygon)
             self._highlight_item.setVisible(True)
         for item in self._glow_items:
             item.setPolygon(polygon)
@@ -239,14 +250,7 @@ class PageViewer(QGraphicsView):
             self._dim_item.setBrush(QBrush(QColor(8, 9, 12, alpha)))
 
         if zoom:
-            # Frame the label, not the whole product column: that is what the
-            # worker is looking for on the shelf.
-            frame = _polygon(label_points).boundingRect().united(
-                polygon.boundingRect().adjusted(0, 0, 0, 0))
-            label_rect = _polygon(label_points).boundingRect()
-            if label_rect.isValid():
-                frame = label_rect
-            self.zoom_to(frame, animate=animate)
+            self.zoom_to(polygon.boundingRect(), animate=animate)
 
     # -- navigation -------------------------------------------------------
     def fit_page(self) -> None:
