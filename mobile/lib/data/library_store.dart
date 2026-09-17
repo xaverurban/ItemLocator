@@ -49,6 +49,9 @@ class LibraryStore {
       layouts.fold(0, (total, layout) => total + layout.pages.length);
 
   Future<void> load() async {
+    // A fresh install has neither folder yet, and everything written later
+    // assumes they are there.
+    await imagesDirectory.create(recursive: true);
     layouts.clear();
     if (await _manifest.exists()) {
       try {

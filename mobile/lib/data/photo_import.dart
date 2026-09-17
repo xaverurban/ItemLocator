@@ -37,13 +37,36 @@ typedef ProgressCallback = void Function(PhotoImportProgress progress);
 /// Reads sheets with on-device OCR. Nothing is uploaded and no signal is needed.
 class PhotoImporter {
   PhotoImporter({required this.imagesDirectory, TextRecognizer? recognizer})
-      : _recognizer =
-            recognizer ?? TextRecognizer(script: TextRecognitionScript.latin);
+      : _given = recognizer;
 
   final Directory imagesDirectory;
-  final TextRecognizer _recognizer;
+  final TextRecognizer? _given;
+  TextRecognizer? _built;
+  Directory? _workspace;
 
-  Future<void> dispose() => _recognizer.close();
+  /// Built on first use, so the importer can be made - and its file handling
+  /// tested - without the platform plugin being involved.
+  TextRecognizer get _recognizer =>
+      _given ?? (_built ??= TextRecognizer(script: TextRecognitionScript.latin));
+
+  Future<void> dispose() async {
+    await _built?.close();
+    await _given?.close();
+    final workspace = _workspace;
+    if (workspace != null && await workspace.exists()) {
+      await workspace.delete(recursive: true);
+    }
+  }
+
+  /// Make sure there is somewhere to write to.
+  ///
+  /// On a fresh install nothing has created the images folder yet, and writing
+  /// a file into a folder that is not there fails with PathNotFoundException.
+  Future<Directory> prepare() async {
+    await imagesDirectory.create(recursive: true);
+    return _workspace ??=
+        await Directory.systemTemp.createTemp('shelffinder-reading');
+  }
 
   Future<List<OcrLine>> _read(String path) async {
     final recognised = await _recognizer.processImage(InputImage.fromFilePath(path));
@@ -67,6 +90,7 @@ class PhotoImporter {
     final name = p.basename(photo.path);
     progress?.call(PhotoImportProgress(index, total, 'reading', name));
 
+    final workspace = await prepare();
     var workingPath = photo.path;
     var lines = await _read(workingPath);
     var decoded = img.decodeImage(await photo.readAsBytes());
@@ -81,7 +105,7 @@ class PhotoImporter {
       var bestImage = decoded;
       for (final angle in [90, 180, 270]) {
         final turned = img.copyRotate(decoded, angle: angle);
-        final candidatePath = p.join(imagesDirectory.path, '$pageId.turn$angle.jpg');
+        final candidatePath = p.join(workspace.path, '$pageId.turn$angle.jpg');
         await File(candidatePath).writeAsBytes(img.encodeJpg(turned, quality: 90));
         final candidate = await _read(candidatePath);
         final score = textDirectionScore(candidate);
@@ -91,7 +115,7 @@ class PhotoImporter {
           bestImage = turned;
           workingPath = candidatePath;
         } else {
-          await File(candidatePath).delete();
+          await _discard(candidatePath);
         }
       }
       lines = best;
@@ -103,11 +127,11 @@ class PhotoImporter {
     if (upsideDownScore(lines, height) > 0) {
       progress?.call(PhotoImportProgress(index, total, 'turning it the right way up', name));
       final turned = img.copyRotate(decoded, angle: 180);
-      final candidatePath = p.join(imagesDirectory.path, '$pageId.flip.jpg');
+      final candidatePath = p.join(workspace.path, '$pageId.flip.jpg');
       await File(candidatePath).writeAsBytes(img.encodeJpg(turned, quality: 90));
       lines = await _read(candidatePath);
       decoded = turned;
-      if (workingPath != photo.path) await File(workingPath).delete();
+      if (workingPath != photo.path) await _discard(workingPath);
       workingPath = candidatePath;
     }
 
@@ -133,10 +157,7 @@ class PhotoImporter {
             height: decoded.height >= decoded.width ? 2200 : null)
         : decoded;
     await stored.writeAsBytes(img.encodeJpg(scaled, quality: 84));
-    if (workingPath != photo.path) {
-      final temporary = File(workingPath);
-      if (await temporary.exists()) await temporary.delete();
-    }
+    if (workingPath != photo.path) await _discard(workingPath);
 
     // The boxes were measured on the full-size image; scale them with it.
     final factor = scaled.width / decoded.width;
@@ -148,6 +169,15 @@ class PhotoImporter {
       layoutSize: result.layoutSize,
       warnings: result.warnings,
     );
+  }
+
+  Future<void> _discard(String path) async {
+    try {
+      final file = File(path);
+      if (await file.exists()) await file.delete();
+    } on FileSystemException {
+      // A leftover working file is not worth failing an import over.
+    }
   }
 
   PlanogramPage _scaledPage(PlanogramPage page, double factor, double width,
